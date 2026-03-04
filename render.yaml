@@ -24,16 +24,13 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://kryros-backend.onrender.com
-    routes:
-      - path: /
-        destination: kryros-user-ui
 
   - type: web
     name: kryros-admin
     env: node
     region: oregon
-    buildCommand: cd Frontend/Admin-Panel && npm install && npm run build
-    startCommand: cd Frontend/Admin-Panel && npm run start
+    buildCommand: cd Frontend/Admi-Panel && npm install && npm run build
+    startCommand: cd Frontend/Admi-Panel && npm run start
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://kryros-backend.onrender.com
