@@ -259,7 +259,6 @@ export default function SoftwarePage() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }

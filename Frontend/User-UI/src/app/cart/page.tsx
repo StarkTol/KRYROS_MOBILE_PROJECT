@@ -253,7 +253,6 @@ export default function CartPage() {
         </div>
       </div>
 
-      <Footer />
     </div>
   );
 }
