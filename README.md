@@ -12,12 +12,12 @@ https://github.com/StarkTol/KRYROS_MOBILE_PROJECT
 ```
 KRYROS_MOBILE_PROJECT/
 ├── Backend/                 # NestJS API Server
-│   ├── prisma/             # Database schema
+│   ├── prisma/             # Database schema (50+ models)
 │   └── src/                # API modules
 ├── Frontend/
-│   ├── User-UI/           # Customer-facing app (PORT 3000)
-│   └── Admi-Panel/        # Admin dashboard (PORT 3001)
-└── Infrastructure/         # Docker configs
+│   ├── User-UI/           # Customer-facing app
+│   └── Admi-Panel/        # Admin dashboard
+└── render.yaml            # Render.com deployment config
 ```
 
 ---
@@ -25,7 +25,7 @@ KRYROS_MOBILE_PROJECT/
 ## ✨ Features
 
 - **E-Commerce:** Product catalog, cart, wishlist, orders
-- **Fintech:** Buy Now Pay Later, credit profiles, installments
+- **Fintech:** Buy Now Pay Later, credit profiles, installments  
 - **Wholesale:** Bulk pricing, MOQ, distributor accounts
 - **Admin Panel:** Full CMS, analytics, user management
 
@@ -38,56 +38,101 @@ KRYROS_MOBILE_PROJECT/
 ```bash
 git clone https://github.com/StarkTol/KRYROS_MOBILE_PROJECT.git
 cd KRYROS_MOBILE_PROJECT
-
-# Install dependencies
-cd Frontend/User-UI && npm install
-cd ../../Backend && npm install
 ```
 
-### 2. Database Setup
+### 2. Backend Setup
 
 ```bash
-# Create PostgreSQL database
-# Copy environment file
-cp Backend/.env.example Backend/.env
-
-# Update .env with your database URL
-# Then run migrations
 cd Backend
+npm install
+
+# Copy and configure environment
+cp .env.example .env
+# Edit .env with your database URL and JWT_SECRET
+
+# Run database migrations
 npx prisma migrate dev
+
+# Start backend
+npm run start:dev
+# Backend runs on http://localhost:3000
 ```
 
-### 3. Run Development Servers
+### 3. Frontend Setup (User UI)
 
 ```bash
-# Terminal 1 - Backend (Port 3000)
-cd Backend && npm run start:dev
+cd Frontend/User-UI
+npm install
 
-# Terminal 2 - User UI (Port 3000)
-cd Frontend/User-UI && npm run dev
+# Copy and configure environment
+cp .env.example .env
 
-# Terminal 3 - Admin Panel (Port 3001)
-cd Frontend/Admi-Panel && npm run dev
+# Start development server
+npm run dev
+# User UI runs on http://localhost:3000
 ```
 
-### 4. Access
+### 4. Frontend Setup (Admin Panel)
 
-- **User UI:** http://localhost:3000
-- **Admin Panel:** http://localhost:3001
+```bash
+cd Frontend/Admi-Panel
+npm install
+npm run dev
+# Admin Panel runs on http://localhost:3001
+```
 
 ---
 
-## 🔧 Deployment (Render.com)
+## 🔧 Deployment on Render.com
 
-1. Create a PostgreSQL database on Render
-2. Connect GitHub repository
-3. Set environment variables:
-   - `DATABASE_URL` - PostgreSQL connection string
-   - `JWT_SECRET` - Random string for JWT tokens
-4. Deploy using `render.yaml` or manually create 3 web services:
-   - **Backend:** Build: `cd Backend && npm install && npx prisma generate`, Start: `cd Backend && npm run start:prod`
-   - **User UI:** Build: `cd Frontend/User-UI && npm install && npm run build`, Start: `cd Frontend/User-UI && npm run start`
-   - **Admin Panel:** Build: `cd Frontend/Admi-Panel && npm install && npm run build`, Start: `cd Frontend/Admi-Panel && npm run start`
+### Prerequisites
+1. Create a Render.com account
+2. Create a PostgreSQL database on Render
+
+### Manual Deployment Steps
+
+1. **Deploy Backend:**
+   - Create new Web Service
+   - Build Command: `cd Backend && npm install && npx prisma generate`
+   - Start Command: `cd Backend && npm run start:prod`
+   - Add Environment Variables:
+     - `DATABASE_URL`: Your Neon PostgreSQL connection string
+     - `JWT_SECRET`: A random secure string
+
+2. **Deploy User UI:**
+   - Create new Web Service
+   - Build Command: `cd Frontend/User-UI && npm install && npm run build`
+   - Start Command: `cd Frontend/User-UI && npm run start`
+   - Add Environment Variable:
+     - `NEXT_PUBLIC_API_URL`: Your backend URL (e.g., https://kryros-backend.onrender.com)
+
+3. **Deploy Admin Panel:**
+   - Create new Web Service  
+   - Build Command: `cd Frontend/Admi-Panel && npm install && npm run build`
+   - Start Command: `cd Frontend/Admi-Panel && npm run start`
+   - Add Environment Variable:
+     - `NEXT_PUBLIC_API_URL`: Your backend URL
+
+### Or Use render.yaml
+The `render.yaml` file contains the deployment configuration. Connect your GitHub repo to Render and it will auto-detect the configuration.
+
+---
+
+## 📄 Environment Variables
+
+### Backend (.env)
+```
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+JWT_SECRET=your-super-secret-key
+NODE_ENV=development
+PORT=3000
+FRONTEND_URL=http://localhost:3000
+```
+
+### Frontend (.env)
+```
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
 
 ---
 
@@ -97,7 +142,7 @@ cd Frontend/Admi-Panel && npm run dev
 |-------|------------|
 | Frontend | Next.js 14, Tailwind CSS, Framer Motion |
 | Backend | NestJS, Prisma ORM |
-| Database | PostgreSQL |
+| Database | PostgreSQL (Neon) |
 | Auth | JWT |
 | Payments | Paystack, Flutterwave |
 
