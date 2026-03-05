@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Poppins, Playfair_Display, Montserrat } from 'next/font/google'
+import { Inter, Poppins, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Header, TopBar } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
@@ -28,12 +28,6 @@ const playfair = Playfair_Display({
   display: 'swap',
 })
 
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800', '900'],
-  variable: '--font-montserrat',
-  display: 'swap',
-})
 
 export const metadata: Metadata = {
   title: {
@@ -71,9 +65,7 @@ export default function RootLayout({
     <html lang="en" className="light">
       <head>
       </head>
-      <body
-        className={`${inter.variable} ${poppins.variable} ${playfair.variable} ${montserrat.variable} font-sans antialiased`}
-      >
+      <body className={`${inter.variable} ${poppins.variable} ${playfair.variable} font-sans antialiased`}>
         <QueryProvider>
           <AuthProvider>
             <CartProvider>
