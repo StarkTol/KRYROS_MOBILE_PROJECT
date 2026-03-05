@@ -52,8 +52,8 @@ export default function ShopPage() {
   };
 
   const filteredProducts = products.filter(product => {
-    if (selectedCategory !== "all" && product.category !== selectedCategory) return false;
-    if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand)) return false;
+    if (selectedCategory !== "all" && product.category.slug !== selectedCategory) return false;
+    if (selectedBrands.length > 0 && !selectedBrands.includes(product.brand.name)) return false;
     if (searchQuery && !product.name.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     if (priceRange) {
       if (priceRange.min && product.price < priceRange.min) return false;
