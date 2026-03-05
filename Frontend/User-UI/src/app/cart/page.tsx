@@ -221,8 +221,8 @@ export default function CartPage() {
                 </div>
               </div>
 
-              {/* Checkout Buttons className="mt */}
-              <div-6 space-y-3">
+              {/* Checkout Buttons */}
+              <div className="mt-6 space-y-3">
                 <Button className="w-full bg-green-500 hover:bg-green-600">
                   Proceed to Checkout <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

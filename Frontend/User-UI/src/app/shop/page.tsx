@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ProductCard } from "@/components/home/ProductCard";
-import { products } from "@/lib/store-data";
+import { products } from "@/data/mock-data";
 import { 
   Search, 
   Filter, 

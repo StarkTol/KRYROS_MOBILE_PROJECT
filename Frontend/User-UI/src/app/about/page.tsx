@@ -197,7 +197,6 @@ export default function AboutPage() {
       <div className="bg-slate-900 py-16">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <h2 className="text-3xl font-bold text-white">Join the KRYROS Family</h2>
-          ="text-3xl font-bold text-white">Join the KRYROS Family</h2>
           <p className="mx-auto mt-4 max-w-xl text-slate-400">
             Experience the best in tech retail and financing in Zambia
           </p>

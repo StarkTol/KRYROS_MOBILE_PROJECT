@@ -86,7 +86,7 @@ function HeroSlider() {
               <p className="text-lg text-gray-200 mb-8">
                 Discover the latest technology and electronics at unbeatable prices.
               </p>
-              <Link href={banners[currentSlide].link}>
+              <Link href={banners[currentSlide].link || "/shop"}>
                 <Button size="lg" className="bg-kryros-orange hover:bg-kryros-orange/90 text-lg px-8">
                   {banners[currentSlide].linkText}
                   <ArrowRight className="ml-2 h-5 w-5" />
