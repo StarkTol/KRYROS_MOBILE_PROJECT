@@ -19,7 +19,7 @@ export class CMSService {
     });
   }
 
-  async getPage(slug: string).prisma.cMS {
-    return thisPage.findUnique({ where: { slug } });
+  async getPage(slug: string) {
+    return this.prisma.cMSPage.findUnique({ where: { slug } });
   }
 }

@@ -5,8 +5,8 @@ import { PrismaService } from '../prisma/prisma.service';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(userId?: string, params: { skip?: number; take?: number; status?: string }) {
-    const { skip = 0, take = 20, status } = params;
+  async findAll(userId?: string, params?: { skip?: number; take?: number; status?: string }) {
+    const { skip = 0, take = 20, status } = params || {};
     const where: any = userId ? { userId } : {};
     if (status) where.status = status;
 

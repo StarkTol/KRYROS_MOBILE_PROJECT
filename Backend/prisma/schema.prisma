@@ -56,7 +56,6 @@ model Role {
   name        String       @unique
   description String?
   permissions Permission[]
-  users       UserRole[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
@@ -74,7 +73,7 @@ model Permission {
   @@map("permissions")
 }
 
-model UserRole {
+model UserRoleAssignment {
   id     String @id @default(uuid())
   userId String
   roleId String
