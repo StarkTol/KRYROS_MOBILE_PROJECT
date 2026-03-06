@@ -17,6 +17,7 @@ export default function AdminLoginPage() {
 
     try {
       await new Promise((r) => setTimeout(r, 800));
+      document.cookie = "admin_token=demo; Max-Age=2592000; Path=/";
       window.location.href = "/admin";
     } catch (err) {
       setError("Unable to sign in. Please try again.");
