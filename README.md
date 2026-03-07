@@ -104,14 +104,14 @@ npm run dev
    - Build Command: `cd Frontend/User-UI && npm install && npm run build`
    - Start Command: `cd Frontend/User-UI && npm run start`
    - Add Environment Variable:
-     - `NEXT_PUBLIC_API_URL`: Your backend URL (e.g., https://kryros-backend.onrender.com)
+     - `NEXT_PUBLIC_API_URL`: Your backend API base (e.g., https://kryrosbackend.onrender.com/api)
 
 3. **Deploy Admin Panel:**
    - Create new Web Service  
    - Build Command: `cd Frontend/Admi-Panel && npm install && npm run build`
    - Start Command: `cd Frontend/Admi-Panel && npm run start`
    - Add Environment Variable:
-     - `NEXT_PUBLIC_API_URL`: Your backend URL
+     - `NEXT_PUBLIC_API_URL`: Your backend API base (e.g., https://kryrosbackend.onrender.com/api)
 
 ### Or Use render.yaml
 The `render.yaml` file contains the deployment configuration. Connect your GitHub repo to Render and it will auto-detect the configuration.
@@ -131,7 +131,7 @@ FRONTEND_URL=http://localhost:3000
 
 ### Frontend (.env)
 ```
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=https://kryrosbackend.onrender.com/api
 ```
 
 ---

@@ -21,7 +21,7 @@ services:
     startCommand: cd Frontend/User-UI && npm run start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://kryros-backend.onrender.com
+        value: https://kryrosbackend.onrender.com/api
 
   - type: web
     name: kryros-admin
@@ -31,4 +31,4 @@ services:
     startCommand: cd Frontend/Admi-Panel && npm run start
     envVars:
       - key: NEXT_PUBLIC_API_URL
-        value: https://kryros-backend.onrender.com
+        value: https://kryrosbackend.onrender.com/api
