@@ -26,16 +26,18 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger documentation
-  const config = new DocumentBuilder()
-    .setTitle('KRYROS API')
-    .setDescription('KRYROS Mobile Tech - Enterprise Commerce Platform API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  // Swagger documentation (disabled in production to reduce memory usage)
+  const isProd = (process.env.NODE_ENV || 'development') === 'production';
+  if (!isProd) {
+    const config = new DocumentBuilder()
+      .setTitle('KRYROS API')
+      .setDescription('KRYROS Mobile Tech - Enterprise Commerce Platform API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   // API prefix
   app.setGlobalPrefix('api');
@@ -44,7 +46,9 @@ async function bootstrap() {
   await app.listen(port);
   
   console.log(`🚀 KRYROS API is running on: http://localhost:${port}`);
-  console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  if (!isProd) {
+    console.log(`📚 Swagger documentation: http://localhost:${port}/api/docs`);
+  }
 }
 
 bootstrap();

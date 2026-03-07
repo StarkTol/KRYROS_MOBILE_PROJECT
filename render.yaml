@@ -12,6 +12,8 @@ services:
         sync: false
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
       - key: CORS_ORIGINS
         value: https://kryros.onrender.com,https://kryrosadminpanel.onrender.com
       - key: FRONTEND_URL
@@ -26,6 +28,10 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://kryrosbackend.onrender.com/api
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
 
   - type: web
     name: kryros-admin
@@ -36,3 +42,7 @@ services:
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: https://kryrosbackend.onrender.com/api
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=384
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
