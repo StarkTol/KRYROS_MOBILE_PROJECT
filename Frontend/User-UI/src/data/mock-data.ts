@@ -1,4 +1,8 @@
 import type { Product, Category, Banner, Service, CreditPlan } from '@/types'
+// Freeze timestamps to avoid SSR/client hydration mismatches
+const SNAPSHOT_NOW = '2026-01-01T00:00:00.000Z'
+const addDays = (days: number) =>
+  new Date(new Date(SNAPSHOT_NOW).getTime() + days * 24 * 60 * 60 * 1000).toISOString()
 
 export const categories: Category[] = [
   { id: '1', name: 'Smartphones', slug: 'smartphones', image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400', icon: 'Smartphone', productCount: 156 },
@@ -61,14 +65,14 @@ export const products: Product[] = [
     isFeatured: true,
     isFlashSale: true,
     flashSalePrice: 39999,
-    flashSaleEnd: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    flashSaleEnd: addDays(2),
     stock: 15,
     allowCredit: true,
     creditMinimum: 5000,
     rating: 4.8,
     reviewCount: 234,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: SNAPSHOT_NOW,
+    updatedAt: SNAPSHOT_NOW,
   },
   {
     id: '2',
@@ -92,8 +96,8 @@ export const products: Product[] = [
     creditMinimum: 4000,
     rating: 4.7,
     reviewCount: 189,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: SNAPSHOT_NOW,
+    updatedAt: SNAPSHOT_NOW,
   },
   {
     id: '3',
@@ -137,14 +141,14 @@ export const products: Product[] = [
     isFeatured: true,
     isFlashSale: true,
     flashSalePrice: 6999,
-    flashSaleEnd: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    flashSaleEnd: addDays(1),
     stock: 50,
     allowCredit: true,
     creditMinimum: 1000,
     rating: 4.8,
     reviewCount: 567,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: SNAPSHOT_NOW,
+    updatedAt: SNAPSHOT_NOW,
   },
   {
     id: '5',
@@ -167,8 +171,8 @@ export const products: Product[] = [
     creditMinimum: 3000,
     rating: 4.9,
     reviewCount: 145,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: SNAPSHOT_NOW,
+    updatedAt: SNAPSHOT_NOW,
   },
   {
     id: '6',
@@ -188,14 +192,14 @@ export const products: Product[] = [
     isFeatured: false,
     isFlashSale: true,
     flashSalePrice: 35999,
-    flashSaleEnd: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    flashSaleEnd: addDays(3),
     stock: 8,
     allowCredit: true,
     creditMinimum: 5000,
     rating: 4.6,
     reviewCount: 98,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: SNAPSHOT_NOW,
+    updatedAt: SNAPSHOT_NOW,
   },
   {
     id: '7',

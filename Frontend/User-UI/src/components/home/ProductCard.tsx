@@ -83,7 +83,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
         <div className="flex flex-1 flex-col justify-between">
           <div>
             <p className="text-xs text-slate-500">{displayBrand}</p>
-            <Link href={`/product/${product?.id}`}>
+            <Link href={`/product/${product?.slug ?? product?.id}`}>
               <h3 className="mt-1 text-lg font-semibold text-slate-900 transition-colors group-hover:text-green-500">
                 {product?.name}
               </h3>
@@ -189,7 +189,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
       {/* Content */}
       <div className="p-4">
         <p className="text-xs text-slate-500">{displayBrand}</p>
-        <Link href={`/product/${product?.id}`}>
+        <Link href={`/product/${product?.slug ?? product?.id}`}>
           <h3 className="mt-1 text-sm font-medium text-slate-900 line-clamp-2 transition-colors group-hover:text-green-500">
             {product?.name}
           </h3>
