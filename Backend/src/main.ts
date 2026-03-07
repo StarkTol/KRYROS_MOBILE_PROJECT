@@ -3,7 +3,15 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
+import { execSync } from 'child_process';
+
 async function bootstrap() {
+  try {
+    // Ensure database tables exist before starting
+    execSync('npx prisma db push', { stdio: 'inherit' });
+  } catch (e) {
+    console.log('Prisma db push failed or was skipped');
+  }
   const app = await NestFactory.create(AppModule);
   
   // Enable CORS for multiple origins
