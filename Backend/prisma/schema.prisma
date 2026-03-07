@@ -104,7 +104,8 @@ model Address {
   updatedAt   DateTime @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders      Order[]
+  shippingOrders Order[] @relation("OrderShippingAddress")
+  billingOrders  Order[] @relation("OrderBillingAddress")
 
   @@map("addresses")
 }
@@ -362,9 +363,9 @@ model Order {
 
   user              User          @relation(fields: [userId], references: [id])
   shippingAddressId String?
-  shippingAddress   Address?      @relation(fields: [shippingAddressId], references: [id])
+  shippingAddress   Address?      @relation("OrderShippingAddress", fields: [shippingAddressId], references: [id])
   billingAddressId String?
-  billingAddress    Address?      @relation(fields: [billingAddressId], references: [id])
+  billingAddress    Address?      @relation("OrderBillingAddress", fields: [billingAddressId], references: [id])
   items             OrderItem[]
   logs              OrderLog[]
 
