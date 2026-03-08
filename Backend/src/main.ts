@@ -8,9 +8,11 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
+  const isProd = (process.env.NODE_ENV || 'development') === 'production';
   try {
-    // Ensure database tables exist before starting
-    execSync('npx prisma db push', { stdio: 'inherit' });
+    if (!isProd) {
+      execSync('npx prisma db push', { stdio: 'inherit' });
+    }
   } catch (e) {
     console.log('Prisma db push failed or was skipped');
   }
@@ -69,7 +71,6 @@ async function bootstrap() {
   );
 
   // Swagger documentation (disabled in production to reduce memory usage)
-  const isProd = (process.env.NODE_ENV || 'development') === 'production';
   if (!isProd) {
     const config = new DocumentBuilder()
       .setTitle('KRYROS API')

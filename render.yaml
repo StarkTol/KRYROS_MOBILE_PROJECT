@@ -3,7 +3,7 @@ services:
     name: kryros-backend
     env: node
     region: oregon
-    buildCommand: cd Backend && npm install && npx prisma generate
+    buildCommand: cd Backend && npm install && npm run build && npx prisma generate
     startCommand: cd Backend && npx prisma db push && npm run start:prod
     envVars:
       - key: DATABASE_URL
@@ -11,9 +11,9 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: ADMIN_SEED_EMAIL
-        value: kryrosmobile@gmail.com
+        sync: false
       - key: ADMIN_SEED_PASSWORD
-        value: "@9010Admin"
+        sync: false
       - key: NODE_ENV
         value: production
       - key: NODE_OPTIONS
