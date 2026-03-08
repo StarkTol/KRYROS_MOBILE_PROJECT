@@ -65,7 +65,7 @@ export default function CMSPage() {
   const loadBanners = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/internal/cms/banners/manage", { cache: "no-store" });
+      const res = await fetch("/internal/cms/banners/manage", { cache: "no-store", credentials: "same-origin" });
       if (res.ok) {
         const data = await res.json();
         setBanners(Array.isArray(data) ? data : data?.data || []);
@@ -182,6 +182,7 @@ export default function CMSPage() {
                   setMessage(null);
                   const res = await fetch("/internal/cms/banners", {
                     method: "POST",
+                    credentials: "same-origin",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form),
                   });
@@ -210,7 +211,7 @@ export default function CMSPage() {
                 try {
                   setSaving(true);
                   setError(null);
-                  const res = await fetch("/internal/cms/banners/seed", { method: "POST" });
+                  const res = await fetch("/internal/cms/banners/seed", { method: "POST", credentials: "same-origin" });
                   const body = await res.json().catch(() => ({}));
                   if (!res.ok) throw new Error(body?.error || "Failed to seed banners");
                   setMessage("Default banners added");
@@ -335,6 +336,7 @@ export default function CMSPage() {
                           if (!ok) return;
                           const res = await fetch(`/internal/cms/banners/${banner.id}`, {
                             method: "DELETE",
+                            credentials: "same-origin",
                           });
                           if (res.ok) {
                             await loadBanners();
