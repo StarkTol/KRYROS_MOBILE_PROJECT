@@ -122,4 +122,9 @@ export const walletApi = {
     }),
 };
 
+// CMS API
+export const cmsApi = {
+  getBanners: () => fetchApi<any[]>('/cms/banners'),
+};
+
 export default fetchApi;

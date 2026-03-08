@@ -20,7 +20,6 @@ import {
 } from "lucide-react"
 import { Logo } from "./Logo"
 import { AuthButtons } from "./AuthButtons"
-import { megaMenuCategories } from "@/lib/store-data"
 
 export function TopBar() {
   return (
@@ -106,64 +105,7 @@ export function Header() {
             >
               Home
             </Link>
-            <div ref={megaMenuRef} className="relative">
-              <button
-                onMouseEnter={() => setMegaMenuOpen(true)}
-                onClick={() => setMegaMenuOpen(!megaMenuOpen)}
-                className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
-              >
-                Categories
-                <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform ${megaMenuOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              <AnimatePresence>
-                {megaMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 8 }}
-                    transition={{ duration: 0.2 }}
-                    onMouseLeave={() => setMegaMenuOpen(false)}
-                    className="absolute left-1/2 top-full mt-2 w-[640px] -translate-x-1/2 rounded-xl border border-slate-200 bg-white p-6 shadow-xl"
-                  >
-                    <div className="grid grid-cols-4 gap-6">
-                      {megaMenuCategories.map((cat) => (
-                        <div key={cat.title}>
-                          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                            {cat.title}
-                          </h4>
-                          <ul className="flex flex-col gap-2">
-                            {cat.items.map((item) => (
-                              <li key={item.name}>
-                                <Link
-                                  href={item.href}
-                                  onClick={() => setMegaMenuOpen(false)}
-                                  className="text-sm text-slate-900 transition-colors hover:text-green-500"
-                                >
-                                  {item.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-6 flex items-center gap-3 rounded-lg bg-green-50 p-4">
-                      <CreditCard className="h-5 w-5 text-green-500" />
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900">
-                          Buy Now, Pay Later
-                        </p>
-                        <p className="text-xs text-slate-500">
-                          Flexible installment plans on all products
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Categories menu removed until real data is available */}
             <Link
               href="/shop"
               className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
@@ -346,21 +288,7 @@ export function Header() {
                       </Link>
                     ))}
                     <hr className="my-2 border-slate-200" />
-                    <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                      Categories
-                    </p>
-                    {megaMenuCategories.map((cat) =>
-                      cat.items.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="rounded-md px-3 py-2 text-sm text-slate-900 transition-colors hover:bg-slate-100"
-                        >
-                          {item.name}
-                        </Link>
-                      ))
-                    )}
+                    <div className="px-3 py-2 text-sm text-slate-500">Categories Coming Soon</div>
                   </div>
                 </nav>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   Image, 
   Layout, 
@@ -20,12 +20,6 @@ import {
 } from "lucide-react";
 
 const cmsData = {
-  banners: [
-    { id: 1, title: "Summer Sale", image: "/banners/summer.jpg", link: "/shop", position: 1, active: true, views: 12500 },
-    { id: 2, title: "New iPhone Launch", image: "/banners/iphone.jpg", link: "/product/iphone-15", position: 2, active: true, views: 8900 },
-    { id: 3, title: "Credit Offers", image: "/banners/credit.jpg", link: "/credit", position: 3, active: true, views: 5600 },
-    { id: 4, title: "Wholesale Deals", image: "/banners/wholesale.jpg", link: "/wholesale", position: 4, active: false, views: 0 },
-  ],
   sections: [
     { id: 1, name: "Flash Sales", slug: "flash-sales", enabled: true, order: 1, products: 12 },
     { id: 2, name: "Featured Products", slug: "featured-products", enabled: true, order: 2, products: 24 },
@@ -53,15 +47,41 @@ const cmsData = {
 export default function CMSPage() {
   const [activeTab, setActiveTab] = useState("banners");
   const [searchQuery, setSearchQuery] = useState("");
+  const [banners, setBanners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showAdd, setShowAdd] = useState(false);
+  const [form, setForm] = useState<{ title: string; subtitle?: string; image: string; link?: string; linkText?: string; position?: number; isActive?: boolean }>({
+    title: "",
+    image: "",
+    link: "",
+    linkText: "Shop Now",
+    position: 0,
+    isActive: true,
+  });
+
+  const loadBanners = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/cms/banners/manage", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        setBanners(Array.isArray(data) ? data : data?.data || []);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBanners();
+  }, []);
 
   const tabs = [
-    { id: "banners", label: "Banners", icon: Image, count: cmsData.banners.length },
-    { id: "sections", label: "Sections", icon: Layout, count: cmsData.sections.length },
-    { id: "pages", label: "Pages", icon: FileText, count: cmsData.pages.length },
+    { id: "banners", label: "Banners", icon: Image, count: banners.length },
   ];
 
-  const filteredBanners = cmsData.banners.filter(b => 
-    b.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredBanners = banners.filter((b) =>
+    String(b.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -70,13 +90,110 @@ export default function CMSPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">CMS Management</h1>
-          <p className="mt-1 text-slate-600">Manage banners, homepage sections, and pages</p>
+          <p className="mt-1 text-slate-600">Manage banners for the storefront</p>
         </div>
-        <button className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+        <button
+          onClick={() => setShowAdd(true)}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+        >
           <Plus className="h-4 w-4" />
           Add New
         </button>
       </div>
+
+      {showAdd && (
+        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+              <input
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                className="admin-input"
+                placeholder="Banner title"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Subtitle</label>
+              <input
+                value={form.subtitle || ""}
+                onChange={(e) => setForm({ ...form, subtitle: e.target.value })}
+                className="admin-input"
+                placeholder="Optional subtitle"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Link Text</label>
+              <input
+                value={form.linkText || ""}
+                onChange={(e) => setForm({ ...form, linkText: e.target.value })}
+                className="admin-input"
+                placeholder="Shop Now"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Image URL</label>
+              <input
+                value={form.image}
+                onChange={(e) => setForm({ ...form, image: e.target.value })}
+                className="admin-input"
+                placeholder="https://..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Link</label>
+              <input
+                value={form.link || ""}
+                onChange={(e) => setForm({ ...form, link: e.target.value })}
+                className="admin-input"
+                placeholder="/shop"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Position</label>
+              <input
+                type="number"
+                value={form.position || 0}
+                onChange={(e) => setForm({ ...form, position: Number(e.target.value) })}
+                className="admin-input"
+                placeholder="0"
+              />
+            </div>
+            <div className="flex items-end">
+              <label className="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={!!form.isActive}
+                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                />
+                Active
+              </label>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={async () => {
+                const res = await fetch("/api/cms/banners", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(form),
+                });
+                if (res.ok) {
+                  setShowAdd(false);
+                  setForm({ title: "", image: "", link: "", linkText: "Shop Now", position: 0, isActive: true });
+                  await loadBanners();
+                }
+              }}
+              className="btn-primary"
+            >
+              Create
+            </button>
+            <button onClick={() => setShowAdd(false)} className="btn-secondary">
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="border-b border-slate-200">
@@ -128,7 +245,6 @@ export default function CMSPage() {
                 <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Banner</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Title</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Link</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Views</th>
                 <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Status</th>
                 <th className="text-right px-6 py-3 text-sm font-medium text-slate-600">Actions</th>
               </tr>
@@ -151,16 +267,13 @@ export default function CMSPage() {
                     <span className="font-medium text-slate-900">{banner.title}</span>
                   </td>
                   <td className="px-6 py-4">
-                    <a href={banner.link} className="text-sm text-green-600 hover:underline flex items-center gap-1">
-                      {banner.link} <ExternalLink className="h-3 w-3" />
+                    <a href={banner.link || "/shop"} className="text-sm text-green-600 hover:underline flex items-center gap-1">
+                      {banner.link || "/shop"} <ExternalLink className="h-3 w-3" />
                     </a>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {banner.views.toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <button className="flex items-center gap-1 text-sm">
-                      {banner.active ? (
+                      {banner.isActive ? (
                         <span className="text-green-600 flex items-center gap-1">
                           <ToggleRight className="h-5 w-5" /> Active
                         </span>
@@ -179,7 +292,19 @@ export default function CMSPage() {
                       <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
                         <Edit className="h-4 w-4 text-slate-600" />
                       </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
+                      <button
+                        onClick={async () => {
+                          const ok = confirm("Delete this banner?");
+                          if (!ok) return;
+                          const res = await fetch(`/api/cms/banners/${banner.id}`, {
+                            method: "DELETE",
+                          });
+                          if (res.ok) {
+                            await loadBanners();
+                          }
+                        }}
+                        className="p-2 hover:bg-red-50 rounded-lg transition-colors"
+                      >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </button>
                     </div>
@@ -188,130 +313,14 @@ export default function CMSPage() {
               ))}
             </tbody>
           </table>
+          {loading && <div className="p-4 text-sm text-slate-500">Loading...</div>}
+          {!loading && filteredBanners.length === 0 && (
+            <div className="p-4 text-sm text-slate-500">No banners found</div>
+          )}
         </div>
       )}
 
-      {/* Sections Tab */}
-      {activeTab === "sections" && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">
-                  <GripVertical className="h-4 w-4 inline mr-2" />
-                  Order
-                </th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Section Name</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Slug</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Products</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-slate-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {cmsData.sections.map((section) => (
-                <tr key={section.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="flex items-center gap-2 text-sm text-slate-600">
-                      <GripVertical className="h-4 w-4 cursor-move" />
-                      {section.order}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-slate-900">{section.name}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <code className="text-sm bg-slate-100 px-2 py-1 rounded">{section.slug}</code>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {section.products > 0 ? `${section.products} products` : '—'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="flex items-center gap-1 text-sm">
-                      {section.enabled ? (
-                        <span className="text-green-600 flex items-center gap-1">
-                          <ToggleRight className="h-5 w-5" /> Enabled
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <ToggleLeft className="h-5 w-5" /> Disabled
-                        </span>
-                      )}
-                    </button>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Edit className="h-4 w-4 text-slate-600" />
-                      </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Pages Tab */}
-      {activeTab === "pages" && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Page Title</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Slug</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Template</th>
-                <th className="text-left px-6 py-3 text-sm font-medium text-slate-600">Status</th>
-                <th className="text-right px-6 py-3 text-sm font-medium text-slate-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {cmsData.pages.map((page) => (
-                <tr key={page.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <FileText className="h-5 w-5 text-slate-400" />
-                      <span className="font-medium text-slate-900">{page.title}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <code className="text-sm bg-slate-100 px-2 py-1 rounded">{page.slug}</code>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-slate-600">
-                    {page.template}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      page.status === "published" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-yellow-100 text-yellow-800"
-                    }`}>
-                      {page.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Eye className="h-4 w-4 text-slate-600" />
-                      </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Edit className="h-4 w-4 text-slate-600" />
-                      </button>
-                      <button className="p-2 hover:bg-red-50 rounded-lg transition-colors">
-                        <Trash2 className="h-4 w-4 text-red-500" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {/* Sections and Pages removed until real data is available */}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -321,7 +330,7 @@ export default function CMSPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Active Banners</p>
-            <p className="text-xl font-bold text-slate-900">{cmsData.banners.filter(b => b.active).length}</p>
+            <p className="text-xl font-bold text-slate-900">{banners.filter(b => b.isActive).length}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
@@ -348,7 +357,7 @@ export default function CMSPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Total Banner Views</p>
-            <p className="text-xl font-bold text-slate-900">{cmsData.banners.reduce((a, b) => a + b.views, 0).toLocaleString()}</p>
+            <p className="text-xl font-bold text-slate-900">—</p>
           </div>
         </div>
       </div>

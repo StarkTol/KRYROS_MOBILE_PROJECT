@@ -1,6 +1,9 @@
-import { Controller, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CMSService } from './cms.service';
+import { CreateBannerDto } from './dto/create-banner.dto';
+import { UpdateBannerDto } from './dto/update-banner.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('CMS')
 @Controller('cms')
@@ -11,6 +14,38 @@ export class CMSController {
   @ApiOperation({ summary: 'Get active banners' })
   getBanners() {
     return this.cmsService.getBanners();
+  }
+
+  @Get('banners/manage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all banners' })
+  listBanners() {
+    return this.cmsService.listBanners();
+  }
+
+  @Post('banners')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create banner' })
+  createBanner(@Body() data: CreateBannerDto) {
+    return this.cmsService.createBanner(data);
+  }
+
+  @Put('banners/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update banner' })
+  updateBanner(@Param('id') id: string, @Body() data: UpdateBannerDto) {
+    return this.cmsService.updateBanner(id, data);
+  }
+
+  @Delete('banners/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete banner' })
+  deleteBanner(@Param('id') id: string) {
+    return this.cmsService.deleteBanner(id);
   }
 
   @Get('sections')

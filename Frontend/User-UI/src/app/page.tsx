@@ -6,15 +6,17 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Flashlight, Star, Heart, ShoppingCart, ArrowRight, Clock, Tag, Zap, Shield, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { BlogSection } from '@/components/home/BlogSection'
-import { CreditSection } from '@/components/home/CreditSection'
-import { CategoriesGrid } from '@/components/home/CategoriesGrid'
-import { PromoBanners } from '@/components/home/PromoBanners'
+import ComingSoon from '@/components/common/ComingSoon'
 import { Input } from '@/components/ui/input'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice, getTimeRemaining, calculateDiscount } from '@/lib/utils'
-import { banners, products, services, creditPlans, testimonials } from '@/data/mock-data'
+import { cmsApi } from '@/lib/api'
 import type { Product } from '@/types'
+
+// Remove placeholders by using empty arrays until real data exists
+const products: any[] = []
+const services: any[] = []
+const testimonials: any[] = []
 
 // Animation variants
 const fadeInUp = {
@@ -35,13 +37,36 @@ const staggerContainer = {
 // Hero Slider Component
 function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [heroBanners, setHeroBanners] = useState<any[]>([])
 
   useEffect(() => {
+    let isMounted = true
+    cmsApi.getBanners().then(res => {
+      if (isMounted && res.data && Array.isArray(res.data)) {
+        const mapped = res.data.map((b: any) => ({
+          id: b.id,
+          title: b.title,
+          subtitle: b.subtitle || '',
+          image: b.image,
+          link: b.link || '/shop',
+          linkText: b.linkText || 'Shop Now',
+          isActive: b.isActive,
+          position: b.position || 0,
+        }))
+        setHeroBanners(mapped)
+      }
+    }).catch(() => {
+      setHeroBanners([])
+    })
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % banners.length)
+      setCurrentSlide((prev) => (heroBanners.length ? (prev + 1) % heroBanners.length : 0))
     }, 5000)
     return () => clearInterval(timer)
   }, [])
+
+  if (!heroBanners.length) {
+    return <ComingSoon title="Homepage Banners Coming Soon" message="Our latest promotions will appear here." />
+  }
 
   return (
     <div className="relative h-[500px] md:h-[600px] overflow-hidden">
@@ -55,8 +80,8 @@ function HeroSlider() {
           className="absolute inset-0"
         >
           <Image
-            src={banners[currentSlide].image}
-            alt={banners[currentSlide].title}
+            src={heroBanners[currentSlide]?.image}
+            alt={heroBanners[currentSlide]?.title}
             fill
             className="object-cover"
             priority
@@ -78,17 +103,17 @@ function HeroSlider() {
               className="max-w-xl"
             >
               <span className="inline-block px-4 py-1 bg-kryros-accent text-white text-sm font-medium rounded-full mb-4">
-                {banners[currentSlide].subtitle}
+                {heroBanners[currentSlide]?.subtitle}
               </span>
               <h1 className="text-5xl md:text-7xl font-display font-bold text-white mb-4">
-                {banners[currentSlide].title}
+                {heroBanners[currentSlide]?.title}
               </h1>
               <p className="text-lg text-gray-200 mb-8">
                 Discover the latest technology and electronics at unbeatable prices.
               </p>
-              <Link href={banners[currentSlide].link || "/shop"}>
+              <Link href={heroBanners[currentSlide]?.link || "/shop"}>
                 <Button size="lg" className="bg-kryros-orange hover:bg-kryros-orange/90 text-lg px-8">
-                  {banners[currentSlide].linkText}
+                  {heroBanners[currentSlide]?.linkText}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -99,7 +124,7 @@ function HeroSlider() {
 
       {/* Navigation */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
-        {banners.map((_, index) => (
+        {heroBanners.map((_, index) => (
           <button
             key={index}
             onClick={() => setCurrentSlide(index)}
@@ -115,7 +140,7 @@ function HeroSlider() {
         variant="ghost"
         size="icon"
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white"
-        onClick={() => setCurrentSlide((prev) => (prev - 1 + banners.length) % banners.length)}
+        onClick={() => setCurrentSlide((prev) => (prev - 1 + heroBanners.length) % heroBanners.length)}
       >
         <ChevronLeft className="h-6 w-6" />
       </Button>
@@ -123,7 +148,7 @@ function HeroSlider() {
         variant="ghost"
         size="icon"
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white"
-        onClick={() => setCurrentSlide((prev) => (prev + 1) % banners.length)}
+        onClick={() => setCurrentSlide((prev) => (prev + 1) % heroBanners.length)}
       >
         <ChevronRight className="h-6 w-6" />
       </Button>
@@ -443,15 +468,7 @@ export default function HomePage() {
   return (
     <div className="pt-0">
       <HeroSlider />
-      <FlashSales />
-      <CategoriesGrid />
-      <FeaturedProducts />
-      <PromoBanners />
-      <ServicesSection />
-      <CreditSection />
-      <TestimonialsSection />
-      <NewsletterSection />
-      <BlogSection />
+      <ComingSoon title="Storefront Coming Soon" message="Product listings, categories, and more will appear here once posted." />
     </div>
   )
 }
