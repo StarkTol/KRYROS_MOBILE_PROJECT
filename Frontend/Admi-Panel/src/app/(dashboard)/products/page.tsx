@@ -21,7 +21,7 @@ export default function ProductsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/products", { cache: "no-store" });
+      const res = await fetch("/internal/admin/products", { cache: "no-store" });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body?.error || "Failed to load products");
       const items = Array.isArray(body?.products) ? body.products : body?.data || [];
