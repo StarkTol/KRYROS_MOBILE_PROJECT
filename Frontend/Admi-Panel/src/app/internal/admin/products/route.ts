@@ -1,1 +1,1 @@
-export { GET } from "../../../../api/admin/products/route";
+export { GET } from "../../../api/admin/products/route";
