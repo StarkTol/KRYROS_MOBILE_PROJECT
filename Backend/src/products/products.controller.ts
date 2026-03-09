@@ -2,6 +2,7 @@ import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } fro
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UpdateProductFlagsDto } from './dto/update-product-flags.dto';
 
 @ApiTags('Products')
 @Controller('products')
@@ -36,6 +37,14 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get flash sale products' })
   getFlashSales() {
     return this.productsService.getFlashSaleProducts();
+  }
+
+  @Put(':id/flags')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update product feature/flash flags' })
+  updateFlags(@Param('id') id: string, @Body() body: UpdateProductFlagsDto) {
+    return this.productsService.updateFlags(id, body);
   }
 
   @Get(':id')

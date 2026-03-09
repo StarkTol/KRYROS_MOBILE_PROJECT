@@ -114,4 +114,17 @@ export class ProductsService {
       },
     });
   }
+
+  async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {
+    const product = await this.prisma.product.update({
+      where: { id },
+      data: {
+        isFeatured: typeof data.isFeatured === 'boolean' ? data.isFeatured : undefined,
+        isFlashSale: typeof data.isFlashSale === 'boolean' ? data.isFlashSale : undefined,
+        flashSaleEnd: data.flashSaleEnd !== undefined ? (data.flashSaleEnd ? new Date(data.flashSaleEnd) : null) : undefined,
+        flashSalePrice: data.flashSalePrice !== undefined ? data.flashSalePrice : undefined,
+      },
+    });
+    return product;
+  }
 }
