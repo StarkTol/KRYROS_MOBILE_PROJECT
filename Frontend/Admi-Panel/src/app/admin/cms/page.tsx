@@ -48,6 +48,7 @@ export default function CMSPage() {
   const [activeTab, setActiveTab] = useState("banners");
   const [searchQuery, setSearchQuery] = useState("");
   const [banners, setBanners] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState<{ title: string; subtitle?: string; image: string; link?: string; linkText?: string; position?: number; isActive?: boolean }>({
@@ -79,8 +80,19 @@ export default function CMSPage() {
     loadBanners();
   }, []);
 
+  const loadSections = async () => {
+    const res = await fetch("/internal/admin/cms/sections", { cache: "no-store", credentials: "same-origin" });
+    if (res.ok) {
+      const data = await res.json();
+      setSections(Array.isArray(data) ? data : data?.data || []);
+    }
+  };
+
+  useEffect(() => { loadSections(); }, []);
+
   const tabs = [
     { id: "banners", label: "Banners", icon: Image, count: banners.length },
+    { id: "testimonials", label: "Testimonials", icon: MessageSquare, count: sections.filter((s:any) => s.type === "testimonials" && s.isActive).length },
   ];
 
   const filteredBanners = banners.filter((b) =>
@@ -359,7 +371,81 @@ export default function CMSPage() {
         </div>
       )}
 
-      {/* Sections and Pages removed until real data is available */}
+      {/* Testimonials */}
+      {activeTab === "testimonials" && (
+        <div className="admin-card p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Homepage Testimonials</h2>
+            <button
+              onClick={async () => {
+                const sample = [
+                  { name: "Chanda Mwansa", comment: "Great service and prices!", rating: 5, location: "Lusaka", avatar: "" },
+                  { name: "Mary Phiri", comment: "Quick delivery and friendly staff.", rating: 4, location: "Kitwe", avatar: "" },
+                ];
+                const res = await fetch("/internal/admin/cms/sections", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ type: "testimonials", title: "What Our Customers Say", isActive: true, order: 9, config: { items: sample } }),
+                });
+                if (res.ok) {
+                  await loadSections();
+                  alert("Testimonials section created/updated");
+                } else {
+                  const t = await res.text();
+                  alert(t || "Failed to save");
+                }
+              }}
+              className="btn-secondary"
+            >
+              Quick Add Sample
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {sections.filter((s:any) => s.type === "testimonials").map((s:any) => (
+              <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">{s.title || "Testimonials"}</p>
+                  <p className="text-sm text-slate-500">Items: {Array.isArray(s.config?.items) ? s.config.items.length : 0}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      defaultChecked={s.isActive}
+                      onChange={async (e) => {
+                        await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                          method: "PUT",
+                          credentials: "same-origin",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ isActive: e.target.checked }),
+                        });
+                        await loadSections();
+                      }}
+                    />
+                    Active
+                  </label>
+                  <button
+                    onClick={async () => {
+                      const ok = confirm("Delete this section?");
+                      if (!ok) return;
+                      const res = await fetch(`/internal/admin/cms/sections/${s.id}`, { method: "DELETE", credentials: "same-origin" });
+                      if (res.ok) await loadSections();
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {sections.filter((s:any) => s.type === "testimonials").length === 0 && (
+              <div className="text-sm text-slate-500">No testimonials section yet. Use “Quick Add Sample”.</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

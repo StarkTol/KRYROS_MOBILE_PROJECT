@@ -423,18 +423,37 @@ function ServicesSection() {
 
 // Testimonials Section
 function TestimonialsSection() {
+  const [items, setItems] = useState<any[]>([])
+  const [title, setTitle] = useState<string>("What Our Customers Say")
+  useEffect(() => {
+    let active = true
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://kryrosbackend.onrender.com/api'}/cms/sections`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => {
+        if (!active) return
+        const arr = Array.isArray(d) ? d : d?.data || []
+        const sect = arr.find((s:any) => s.type === 'testimonials' && s.isActive)
+        if (sect && Array.isArray(sect.config?.items)) {
+          setItems(sect.config.items)
+          if (sect.title) setTitle(sect.title)
+        }
+      })
+      .catch(() => setItems([]))
+    return () => { active = false }
+  }, [])
+  if (!items.length) return null
   return (
     <section className="section-padding">
       <div className="container-custom">
         <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-display font-bold mb-4">What Our Customers Say</h2>
+          <h2 className="text-2xl md:text-3xl font-display font-bold mb-4">{title}</h2>
           <p className="text-gray-600">Join thousands of satisfied customers</p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {testimonials.map((testimonial, index) => (
+          {items.map((testimonial: any, index: number) => (
             <motion.div
-              key={testimonial.id}
+              key={`${testimonial.name}-${index}`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -445,7 +464,7 @@ function TestimonialsSection() {
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className={`h-5 w-5 ${i < testimonial.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+                    className={`h-5 w-5 ${i < Math.floor(testimonial.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
                   />
                 ))}
               </div>
@@ -453,7 +472,7 @@ function TestimonialsSection() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                   <Image
-                    src={testimonial.avatar}
+                    src={testimonial.avatar || 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?w=80&h=80&fit=crop'}
                     alt={testimonial.name}
                     width={40}
                     height={40}
@@ -462,7 +481,7 @@ function TestimonialsSection() {
                 </div>
                 <div>
                   <p className="font-medium">{testimonial.name}</p>
-                  <p className="text-base font-medium text-slate-600">{testimonial.location}</p>
+                  <p className="text-base font-medium text-slate-600">{testimonial.location || ''}</p>
                 </div>
               </div>
             </motion.div>
@@ -509,6 +528,7 @@ export default function HomePage() {
       <FeaturedProducts />
       <FlashSales />
       <ServicesSection />
+      <TestimonialsSection />
       <NewsletterSection />
       <ComingSoon title="Storefront Coming Soon" message="Product listings, categories, and more will appear here once posted." />
     </div>
