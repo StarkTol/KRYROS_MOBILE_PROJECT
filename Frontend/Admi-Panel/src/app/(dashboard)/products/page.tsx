@@ -8,6 +8,9 @@ type Product = {
   sku: string;
   price: number;
   isActive?: boolean;
+  isFeatured?: boolean;
+  isFlashSale?: boolean;
+  flashSaleEnd?: string | null;
   category?: { name: string };
   brand?: { name: string };
 };
@@ -16,6 +19,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -58,6 +62,10 @@ export default function ProductsPage() {
                 <th>Brand</th>
                 <th>Price</th>
                 <th>Status</th>
+                <th>Featured</th>
+                <th>Flash Sale</th>
+                <th>Flash Ends</th>
+                <th className="text-right">Save</th>
               </tr>
             </thead>
             <tbody>
@@ -69,6 +77,63 @@ export default function ProductsPage() {
                   <td>{p.brand?.name || "—"}</td>
                   <td>K {Number(p.price).toLocaleString()}</td>
                   <td><span className={`badge ${p.isActive !== false ? "badge-success" : "badge-danger"}`}>{p.isActive !== false ? "Active" : "Inactive"}</span></td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={!!p.isFeatured}
+                      onChange={(e) => {
+                        setProducts(prev => prev.map(x => x.id === p.id ? { ...x, isFeatured: e.target.checked } : x));
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={!!p.isFlashSale}
+                      onChange={(e) => {
+                        setProducts(prev => prev.map(x => x.id === p.id ? { ...x, isFlashSale: e.target.checked } : x));
+                      }}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="datetime-local"
+                      value={p.flashSaleEnd ? new Date(p.flashSaleEnd).toISOString().slice(0,16) : ""}
+                      onChange={(e) => {
+                        const iso = e.target.value ? new Date(e.target.value).toISOString() : null;
+                        setProducts(prev => prev.map(x => x.id === p.id ? { ...x, flashSaleEnd: iso } : x));
+                      }}
+                      className="admin-input"
+                    />
+                  </td>
+                  <td className="text-right">
+                    <button
+                      disabled={savingId === p.id}
+                      onClick={async () => {
+                        try {
+                          setSavingId(p.id);
+                          const res = await fetch(`/internal/admin/products/${p.id}/flags`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              isFeatured: !!p.isFeatured,
+                              isFlashSale: !!p.isFlashSale,
+                              flashSaleEnd: p.flashSaleEnd,
+                            }),
+                          });
+                          const body = await res.json().catch(() => ({}));
+                          if (!res.ok) throw new Error(body?.error || "Failed to save");
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : "Failed to save");
+                        } finally {
+                          setSavingId(null);
+                        }
+                      }}
+                      className="btn-primary"
+                    >
+                      {savingId === p.id ? "Saving..." : "Save"}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -10,7 +10,7 @@ import ComingSoon from '@/components/common/ComingSoon'
 import { Input } from '@/components/ui/input'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice, getTimeRemaining, calculateDiscount } from '@/lib/utils'
-import { cmsApi } from '@/lib/api'
+import { cmsApi, productsApi } from '@/lib/api'
 import type { Product } from '@/types'
 
 // Remove placeholders by using empty arrays until real data exists
@@ -170,18 +170,26 @@ function HeroSlider() {
 
 // Flash Sales Component
 function FlashSales() {
-  const [timeLeft, setTimeLeft] = useState(getTimeRemaining(products[0].flashSaleEnd!))
+  const [flash, setFlash] = useState<any[]>([])
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
+    let active = true
+    productsApi.getFlashSales().then(res => {
+      if (active && Array.isArray(res.data)) setFlash(res.data)
+    })
     setIsMounted(true)
     const timer = setInterval(() => {
-      setTimeLeft(getTimeRemaining(products[0].flashSaleEnd!))
+      if (flash.length && flash[0].flashSaleEnd) {
+        setTimeLeft(getTimeRemaining(flash[0].flashSaleEnd))
+      }
     }, 1000)
-    return () => clearInterval(timer)
+    return () => { active = false; clearInterval(timer) }
   }, [])
 
-  const flashProducts = products.filter(p => p.isFlashSale)
+  if (!flash.length) return null
+  const flashProducts = flash
 
   return (
     <section className="section-padding bg-gradient-to-br from-orange-50 to-red-50">
@@ -325,7 +333,15 @@ function ProductCard({ product }: { product: Product }) {
 
 // Featured Products Section
 function FeaturedProducts() {
-  const featuredProducts = products.filter(p => p.isFeatured).slice(0, 8)
+  const [featuredProducts, setFeatured] = useState<any[]>([])
+  useEffect(() => {
+    let active = true
+    productsApi.getFeatured().then(res => {
+      if (active && Array.isArray(res.data)) setFeatured(res.data.slice(0, 8))
+    })
+    return () => { active = false }
+  }, [])
+  if (!featuredProducts.length) return null
 
   return (
     <section className="section-padding bg-gray-50">
@@ -480,6 +496,8 @@ export default function HomePage() {
   return (
     <div className="pt-0">
       <HeroSlider />
+      <FeaturedProducts />
+      <FlashSales />
       <NewsletterSection />
       <ComingSoon title="Storefront Coming Soon" message="Product listings, categories, and more will appear here once posted." />
     </div>
