@@ -648,10 +648,10 @@ export default function HomePage() {
   return (
     <div className="pt-0">
       <HeroSlider />
-      <WholesaleCreditHighlights />
       <FlashSales />
       <CategoriesGridSection />
       <FeaturedProducts />
+      <WholesaleCreditHighlights />
       <ServicesSection />
       <TestimonialsSection />
       <NewsletterSection />
