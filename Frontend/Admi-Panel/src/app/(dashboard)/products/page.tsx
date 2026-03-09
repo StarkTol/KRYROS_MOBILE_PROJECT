@@ -84,6 +84,7 @@ export default function ProductsPage() {
                 <th>Status</th>
                 <th>Featured</th>
                 <th>Flash Sale</th>
+                <th>Flash Price</th>
                 <th>Flash Ends</th>
                 <th className="text-right">Save</th>
               </tr>
@@ -117,6 +118,20 @@ export default function ProductsPage() {
                   </td>
                   <td>
                     <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Promo price"
+                      value={(p as any).flashSalePrice ?? ""}
+                      onChange={(e) => {
+                        const val = e.target.value === "" ? null : Number(e.target.value);
+                        setProducts(prev => prev.map(x => x.id === p.id ? { ...(x as any), flashSalePrice: val } : x));
+                      }}
+                      className="admin-input w-36"
+                    />
+                  </td>
+                  <td>
+                    <input
                       type="datetime-local"
                       value={p.flashSaleEnd ? new Date(p.flashSaleEnd).toISOString().slice(0,16) : ""}
                       onChange={(e) => {
@@ -139,6 +154,7 @@ export default function ProductsPage() {
                               isFeatured: !!p.isFeatured,
                               isFlashSale: !!p.isFlashSale,
                               flashSaleEnd: p.flashSaleEnd,
+                              flashSalePrice: (p as any).flashSalePrice ?? null,
                             }),
                           });
                           const body = await res.json().catch(() => ({}));
