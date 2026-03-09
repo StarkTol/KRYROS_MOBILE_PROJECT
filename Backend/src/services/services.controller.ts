@@ -42,6 +42,14 @@ export class ServicesController {
     return this.servicesService.create(data);
   }
 
+  @Get('bookings/manage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all service bookings' })
+  listBookings() {
+    return this.servicesService.listBookings();
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

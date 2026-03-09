@@ -44,13 +44,15 @@ const emptyForm: Partial<Service> = {
   isActive: true,
 };
 
-const bookingsData = [
-  { id: "BK001", service: "Phone Repair", customer: "John Chanda", date: "2024-01-15", time: "10:00 AM", status: "confirmed", technician: "Mike" },
-  { id: "BK002", service: "iOS Setup", customer: "Mary Phiri", date: "2024-01-15", time: "11:30 AM", status: "pending", technician: null },
-  { id: "BK003", service: "Laptop Repair", customer: "Peter Mwansa", date: "2024-01-15", time: "02:00 PM", status: "confirmed", technician: "John" },
-  { id: "BK004", service: "Home Network Setup", customer: "Sarah Banda", date: "2024-01-16", time: "09:00 AM", status: "pending", technician: null },
-  { id: "BK005", service: "Software Support", customer: "James Kunda", date: "2024-01-14", time: "03:30 PM", status: "completed", technician: "Mike" },
-];
+type Booking = {
+  id: string;
+  user?: { id: string; firstName?: string | null; lastName?: string | null; email?: string | null };
+  service?: { id: string; name: string };
+  scheduledDate: string;
+  scheduledTime: string;
+  status: string;
+  notes?: string | null;
+};
 
 const categories = ["All", "Repairs", "Installation", "Support", "Trade-in", "Services"];
 const statuses = ["All", "active", "inactive", "pending", "confirmed", "completed"];
@@ -61,6 +63,7 @@ export default function ServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
   const [services, setServices] = useState<Service[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Partial<Service>>(emptyForm);
   const [saving, setSaving] = useState(false);
@@ -77,7 +80,18 @@ export default function ServicesPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  const loadBookings = async () => {
+    try {
+      const res = await fetch("/internal/admin/services/bookings", { cache: "no-store" });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error || "Failed to load bookings");
+      setBookings(Array.isArray(body) ? body : body?.data || body?.items || []);
+    } catch {
+      setBookings([]);
+    }
+  };
+
+  useEffect(() => { load(); loadBookings(); }, []);
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -89,7 +103,7 @@ export default function ServicesPage() {
 
   const tabs = [
     { id: "services", label: "Services", icon: Wrench, count: services.length },
-    { id: "bookings", label: "Bookings", icon: Calendar, count: bookingsData.length },
+    { id: "bookings", label: "Bookings", icon: Calendar, count: bookings.length },
   ];
 
   return (
@@ -282,64 +296,68 @@ export default function ServicesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {bookingsData.map((booking) => (
-                <tr key={booking.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="font-medium text-slate-900">{booking.id}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-900">{booking.service}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-slate-600">{booking.customer}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <Calendar className="h-4 w-4" />
-                      {booking.date} at {booking.time}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    {booking.technician ? (
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-medium text-green-600">{booking.technician[0]}</span>
-                        </div>
-                        <span className="text-slate-600">{booking.technician}</span>
+              {bookings.map((booking) => {
+                const customer =
+                  (booking.user?.firstName || booking.user?.lastName)
+                    ? `${booking.user?.firstName || ""} ${booking.user?.lastName || ""}`.trim()
+                    : booking.user?.email || "Unknown";
+                const when = (() => {
+                  const d = new Date(booking.scheduledDate);
+                  const dateStr = d.toISOString().slice(0,10);
+                  return `${dateStr} at ${booking.scheduledTime}`;
+                })();
+                return (
+                  <tr key={booking.id} className="hover:bg-slate-50">
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-slate-900">{booking.id.slice(0,8).toUpperCase()}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-slate-900">{booking.service?.name || "-"}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-slate-600">{customer}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar className="h-4 w-4" />
+                        {when}
                       </div>
-                    ) : (
+                    </td>
+                    <td className="px-6 py-4">
                       <span className="text-slate-400">Unassigned</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                      booking.status === "confirmed" 
-                        ? "bg-blue-100 text-blue-700"
-                        : booking.status === "pending"
-                        ? "bg-yellow-100 text-yellow-700"
-                        : booking.status === "completed"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
-                      {booking.status === "confirmed" && <CheckCircle className="h-3 w-3" />}
-                      {booking.status === "pending" && <AlertCircle className="h-3 w-3" />}
-                      {booking.status === "completed" && <CheckCircle className="h-3 w-3" />}
-                      {booking.status === "cancelled" && <XCircle className="h-3 w-3" />}
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Eye className="h-4 w-4 text-slate-600" />
-                      </button>
-                      <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-                        <Edit className="h-4 w-4 text-slate-600" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        booking.status === "CONFIRMED" 
+                          ? "bg-blue-100 text-blue-700"
+                          : booking.status === "PENDING"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : booking.status === "COMPLETED"
+                          ? "bg-green-100 text-green-700"
+                          : booking.status === "CANCELLED"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {booking.status === "CONFIRMED" && <CheckCircle className="h-3 w-3" />}
+                        {booking.status === "PENDING" && <AlertCircle className="h-3 w-3" />}
+                        {booking.status === "COMPLETED" && <CheckCircle className="h-3 w-3" />}
+                        {booking.status === "CANCELLED" && <XCircle className="h-3 w-3" />}
+                        {booking.status.toLowerCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                          <Eye className="h-4 w-4 text-slate-600" />
+                        </button>
+                        <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                          <Edit className="h-4 w-4 text-slate-600" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

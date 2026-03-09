@@ -21,6 +21,16 @@ export class ServicesService {
     return this.prisma.service.findMany();
   }
 
+  async listBookings() {
+    return this.prisma.serviceBooking.findMany({
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true } },
+        service: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async create(data: {
     name: string; slug: string; description?: string; price: number; category: string; duration: string; image?: string; features?: string[]; isActive?: boolean;
   }) {
