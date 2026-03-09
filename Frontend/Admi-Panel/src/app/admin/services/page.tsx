@@ -88,7 +88,7 @@ export default function ServicesPage() {
   });
 
   const tabs = [
-    { id: "services", label: "Services", icon: Wrench, count: servicesData.length },
+    { id: "services", label: "Services", icon: Wrench, count: services.length },
     { id: "bookings", label: "Bookings", icon: Calendar, count: bookingsData.length },
   ];
 
