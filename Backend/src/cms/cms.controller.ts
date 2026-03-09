@@ -4,6 +4,8 @@ import { CMSService } from './cms.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateSectionDto } from './dto/create-section.dto';
+import { UpdateSectionDto } from './dto/update-section.dto';
 
 @ApiTags('CMS')
 @Controller('cms')
@@ -52,6 +54,39 @@ export class CMSController {
   @ApiOperation({ summary: 'Get active homepage sections' })
   getSections() {
     return this.cmsService.getSections();
+  }
+
+  // Sections management (admin)
+  @Get('sections/manage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all sections' })
+  listSections() {
+    return this.cmsService.listSections();
+  }
+
+  @Post('sections')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create section' })
+  createSection(@Body() data: CreateSectionDto) {
+    return this.cmsService.createSection(data);
+  }
+
+  @Put('sections/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update section' })
+  updateSection(@Param('id') id: string, @Body() data: UpdateSectionDto) {
+    return this.cmsService.updateSection(id, data);
+  }
+
+  @Delete('sections/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete section' })
+  deleteSection(@Param('id') id: string) {
+    return this.cmsService.deleteSection(id);
   }
 
   @Get('pages/:slug')
