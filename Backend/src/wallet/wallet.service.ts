@@ -19,4 +19,22 @@ export class WalletService {
       orderBy: { createdAt: 'desc' },
     });
   }
+
+  async listWallets(take = 50, skip = 0) {
+    return this.prisma.wallet.findMany({
+      take,
+      skip,
+      orderBy: { updatedAt: 'desc' },
+      include: { user: true, transactions: { take: 1, orderBy: { createdAt: 'desc' } } },
+    });
+  }
+
+  async listTransactions(take = 50, skip = 0) {
+    return this.prisma.transaction.findMany({
+      take,
+      skip,
+      orderBy: { createdAt: 'desc' },
+      include: { wallet: { include: { user: true } } },
+    });
+  }
 }

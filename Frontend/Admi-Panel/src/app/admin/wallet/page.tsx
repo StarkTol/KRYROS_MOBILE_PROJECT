@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { 
   Wallet, 
   CreditCard, 
@@ -106,16 +106,63 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState("transactions");
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [txns, setTxns] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => setIsRefreshing(false), 1500);
+    load().finally(() => setTimeout(() => setIsRefreshing(false), 300));
   };
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [wRes, tRes] = await Promise.all([
+        fetch("/internal/admin/wallets", { cache: "no-store" }),
+        fetch("/internal/admin/wallets/transactions", { cache: "no-store" }),
+      ]);
+      const [w, t] = await Promise.all([wRes.json(), tRes.json()]);
+      if (!wRes.ok) throw new Error(w?.error || "Failed to load wallets");
+      if (!tRes.ok) throw new Error(t?.error || "Failed to load transactions");
+      setWallets(Array.isArray(w) ? w : []);
+      setTxns(Array.isArray(t) ? t : []);
+    } catch (e: any) {
+      setError(e?.message || "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const stats = useMemo(() => {
+    const totalBalance = wallets.reduce((sum, w) => sum + Number(w.balance || 0), 0);
+    const today = new Date().toDateString();
+    const todayTxns = txns.filter((x) => new Date(x.createdAt).toDateString() === today);
+    const todayIncoming = todayTxns
+      .filter((x) => x.type === "CREDIT")
+      .reduce((s, x) => s + Number(x.amount), 0);
+    const todayOutgoing = todayTxns
+      .filter((x) => x.type === "DEBIT" || x.type === "PAYMENT")
+      .reduce((s, x) => s + Number(x.amount), 0);
+    return {
+      totalBalance,
+      todayIncoming,
+      todayOutgoing,
+      pendingTransactions: txns.filter((t) => t.status === "PENDING").length,
+      activeWallets: wallets.length,
+    };
+  }, [wallets, txns]);
 
   const tabs = [
     { id: "transactions", label: "Transactions", icon: ArrowUpRight },
     { id: "wallets", label: "Wallets", icon: Wallet },
-    { id: "pending", label: "Pending", icon: Clock, count: pendingApprovals.length },
+    { id: "pending", label: "Pending", icon: Clock, count: txns.filter((t) => t.status === "PENDING").length },
     { id: "settings", label: "Settings", icon: CreditCard },
   ];
 
@@ -155,7 +202,7 @@ export default function WalletPage() {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </div>
           <p className="text-sm text-slate-500">Total Balance</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(walletStats.totalBalance)}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(stats.totalBalance)}</p>
         </div>
         
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -166,7 +213,7 @@ export default function WalletPage() {
             <span className="text-sm text-green-600">+12%</span>
           </div>
           <p className="text-sm text-slate-500">Today's Incoming</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(walletStats.todayIncoming)}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(stats.todayIncoming)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -177,7 +224,7 @@ export default function WalletPage() {
             <span className="text-sm text-red-600">-8%</span>
           </div>
           <p className="text-sm text-slate-500">Today's Outgoing</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(walletStats.todayOutgoing)}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{formatAmount(stats.todayOutgoing)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -187,7 +234,7 @@ export default function WalletPage() {
             </div>
           </div>
           <p className="text-sm text-slate-500">Pending</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{walletStats.pendingTransactions}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.pendingTransactions}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -197,7 +244,7 @@ export default function WalletPage() {
             </div>
           </div>
           <p className="text-sm text-slate-500">Active Wallets</p>
-          <p className="text-2xl font-bold text-slate-900 mt-1">{walletStats.activeWallets.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-slate-900 mt-1">{stats.activeWallets.toLocaleString()}</p>
         </div>
       </div>
 
@@ -272,57 +319,64 @@ export default function WalletPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {recentTransactions.map((txn) => (
+                {txns
+                  .filter((txn) =>
+                    (txn.wallet?.user?.firstName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (txn.wallet?.user?.lastName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (txn.wallet?.user?.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (txn.reference || txn.id).toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+                  .map((txn) => (
                   <tr key={txn.id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                          txn.type === "credit" ? "bg-green-100" : "bg-red-100"
+                          txn.type === "CREDIT" ? "bg-green-100" : "bg-red-100"
                         }`}>
-                          {txn.type === "credit" ? (
+                          {txn.type === "CREDIT" ? (
                             <ArrowDownLeft className="h-4 w-4 text-green-600" />
                           ) : (
                             <ArrowUpRight className="h-4 w-4 text-red-600" />
                           )}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900">{txn.id}</p>
-                          <p className="text-xs text-slate-500">{txn.ref}</p>
+                          <p className="font-medium text-slate-900">{txn.reference || txn.id}</p>
+                          <p className="text-xs text-slate-500">{txn.description || "-"}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {txn.user}
+                      {(txn.wallet?.user && `${txn.wallet.user.firstName || ""} ${txn.wallet.user.lastName || ""}`.trim()) || txn.wallet?.user?.email || "—"}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`font-semibold ${
-                        txn.type === "credit" ? "text-green-600" : "text-red-600"
+                        txn.type === "CREDIT" ? "text-green-600" : "text-red-600"
                       }`}>
-                        {txn.type === "credit" ? "+" : "-"}{formatAmount(txn.amount)}
+                        {txn.type === "CREDIT" ? "+" : "-"}{formatAmount(Number(txn.amount))}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {formatAmount(txn.fee)}
+                      {txn.metadata?.fee ? `K ${Number(txn.metadata.fee).toLocaleString()}` : "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {txn.method}
+                      {txn.metadata?.method || "—"}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
-                        txn.status === "completed" 
+                        txn.status === "COMPLETED" 
                           ? "bg-green-100 text-green-700"
-                          : txn.status === "pending"
+                          : txn.status === "PENDING"
                           ? "bg-yellow-100 text-yellow-700"
                           : "bg-red-100 text-red-700"
                       }`}>
-                        {txn.status === "completed" && <CheckCircle className="h-3 w-3" />}
-                        {txn.status === "pending" && <Clock className="h-3 w-3" />}
-                        {txn.status === "failed" && <XCircle className="h-3 w-3" />}
-                        {txn.status}
+                        {txn.status === "COMPLETED" && <CheckCircle className="h-3 w-3" />}
+                        {txn.status === "PENDING" && <Clock className="h-3 w-3" />}
+                        {txn.status === "FAILED" && <XCircle className="h-3 w-3" />}
+                        {txn.status.toLowerCase()}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {txn.date}
+                      {new Date(txn.createdAt).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <button className="text-sm text-green-600 hover:underline">
@@ -352,27 +406,29 @@ export default function WalletPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {topWallets.map((wallet) => (
-                <tr key={wallet.user} className="hover:bg-slate-50">
+              {wallets.map((wallet: any) => (
+                <tr key={wallet.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium text-green-600">{wallet.user[0]}</span>
+                        <span className="text-sm font-medium text-green-600">{(wallet.user?.firstName || "?")[0]}</span>
                       </div>
-                      <span className="font-medium text-slate-900">{wallet.user}</span>
+                      <span className="font-medium text-slate-900">
+                        {wallet.user ? `${wallet.user.firstName || ""} ${wallet.user.lastName || ""}`.trim() || wallet.user.email : "—"}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {wallet.email}
+                    {wallet.user?.email || "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="font-semibold text-slate-900">{formatAmount(wallet.balance)}</span>
+                    <span className="font-semibold text-slate-900">{formatAmount(Number(wallet.balance || 0))}</span>
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-600">
-                    {wallet.transactions}
+                    {(wallet as any).transactions?.length ?? 0}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500">
-                    {wallet.lastActive}
+                    {wallet.transactions?.[0]?.createdAt ? new Date(wallet.transactions[0].createdAt as any).toLocaleString() : "—"}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button className="text-sm text-green-600 hover:underline">
