@@ -124,7 +124,8 @@ export default function ProductsPage() {
                       placeholder="Promo price"
                       value={(p as any).flashSalePrice ?? ""}
                       onChange={(e) => {
-                        const val = e.target.value === "" ? null : Number(e.target.value);
+                        const hasValue = e.target.value !== "";
+                        const val = hasValue ? Number(e.target.value) : undefined;
                         setProducts(prev => prev.map(x => x.id === p.id ? { ...(x as any), flashSalePrice: val } : x));
                       }}
                       className="admin-input w-36"
@@ -147,15 +148,19 @@ export default function ProductsPage() {
                       onClick={async () => {
                         try {
                           setSavingId(p.id);
+                          // Build payload omitting undefined fields to satisfy DTO validators
+                          const payload: any = {
+                            isFeatured: !!p.isFeatured,
+                            isFlashSale: !!p.isFlashSale,
+                            flashSaleEnd: p.flashSaleEnd,
+                          };
+                          if ((p as any).flashSalePrice !== undefined) {
+                            payload.flashSalePrice = (p as any).flashSalePrice;
+                          }
                           const res = await fetch(`/internal/admin/products/${p.id}/flags`, {
                             method: "PUT",
                             headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              isFeatured: !!p.isFeatured,
-                              isFlashSale: !!p.isFlashSale,
-                              flashSaleEnd: p.flashSaleEnd,
-                              flashSalePrice: (p as any).flashSalePrice ?? null,
-                            }),
+                            body: JSON.stringify(payload),
                           });
                           const body = await res.json().catch(() => ({}));
                           if (!res.ok) throw new Error(body?.error || "Failed to save");
