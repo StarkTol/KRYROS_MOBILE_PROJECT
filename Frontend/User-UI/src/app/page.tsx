@@ -188,23 +188,7 @@ function FlashSales() {
     return () => { active = false; clearInterval(timer) }
   }, [])
 
-  if (!flash.length) {
-    return (
-      <section className="section-padding bg-gradient-to-br from-orange-50 to-red-50">
-        <div className="container-custom">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-kryros-orange text-white px-4 py-2 rounded-lg">
-                <Flashlight className="h-5 w-5" />
-                <span className="font-bold">Flash Sales</span>
-              </div>
-              <span className="text-sm text-gray-600">No flash deals right now</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    )
-  }
+  if (!flash.length) return null
   const flashProducts = flash
 
   return (
@@ -541,12 +525,11 @@ export default function HomePage() {
   return (
     <div className="pt-0">
       <HeroSlider />
-      <FeaturedProducts />
       <FlashSales />
+      <FeaturedProducts />
       <ServicesSection />
       <TestimonialsSection />
       <NewsletterSection />
-      <ComingSoon title="Storefront Coming Soon" message="Product listings, categories, and more will appear here once posted." />
     </div>
   )
 }
