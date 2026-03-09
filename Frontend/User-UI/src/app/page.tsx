@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Flashlight, Star, Heart, ShoppingCart, ArrowRight, Clock, Tag, Zap, Shield, CreditCard } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Flashlight, Star, Heart, ShoppingCart, ArrowRight, Clock, Tag, Zap, Shield, CreditCard, Smartphone, Laptop, Tablet, Headphones, Watch, Code2, Music, Gamepad2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ComingSoon from '@/components/common/ComingSoon'
 import { Input } from '@/components/ui/input'
 import { useCart } from '@/providers/CartProvider'
 import { formatPrice, getTimeRemaining, calculateDiscount } from '@/lib/utils'
-import { cmsApi, productsApi } from '@/lib/api'
+import { cmsApi, productsApi, categoriesApi } from '@/lib/api'
 import type { Product } from '@/types'
 
 // Remove placeholders by using empty arrays until real data exists
@@ -165,6 +165,63 @@ function HeroSlider() {
         <ChevronRight className="h-6 w-6" />
       </Button>
     </div>
+  )
+}
+
+function CategoriesGridSection() {
+  const [categories, setCategories] = useState<any[]>([])
+  useEffect(() => {
+    let active = true
+    categoriesApi.getAll()
+      .then(res => {
+        if (!active) return
+        const list = Array.isArray(res.data) ? res.data : []
+        setCategories(list.slice(0, 8))
+      })
+      .catch(() => setCategories([]))
+    return () => { active = false }
+  }, [])
+  if (!categories.length) return null
+
+  const iconFor = (name: string) => {
+    const n = (name || '').toLowerCase()
+    if (n.includes('phone')) return Smartphone
+    if (n.includes('laptop')) return Laptop
+    if (n.includes('tablet')) return Tablet
+    if (n.includes('access')) return Headphones
+    if (n.includes('wear')) return Watch
+    if (n.includes('soft')) return Code2
+    if (n.includes('audio')) return Music
+    if (n.includes('game')) return Gamepad2
+    return Tag
+  }
+
+  return (
+    <section className="section-padding bg-slate-50">
+      <div className="container-custom">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-display font-bold">Shop by Category</h2>
+          <p className="text-slate-600">Browse our wide range of tech products</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {categories.map((cat:any, idx:number) => {
+            const Icon = iconFor(cat?.name || '')
+            const count = (cat?.productCount ?? cat?._count?.products ?? 0)
+            return (
+              <Link key={cat?.id ?? idx} href="/shop" className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 hover:shadow-md transition-shadow">
+                <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-green-100">
+                  <Icon className="h-6 w-6 text-green-600" />
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-slate-900">{cat?.name || 'Category'}</div>
+                  <div className="text-sm text-slate-500">{count} products</div>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -526,6 +583,7 @@ export default function HomePage() {
     <div className="pt-0">
       <HeroSlider />
       <FlashSales />
+      <CategoriesGridSection />
       <FeaturedProducts />
       <ServicesSection />
       <TestimonialsSection />
