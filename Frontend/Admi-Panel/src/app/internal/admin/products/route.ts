@@ -16,6 +16,24 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const token = (await cookies()).get("admin_token")?.value || "";
+  const body = await request.text();
+  const res = await fetch(`${API_BASE}/products`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    return NextResponse.json({ error: text || "Failed to create product" }, { status: res.status });
+  }
+  return NextResponse.json(JSON.parse(text));
+}
+
+export async function POST(request: Request) {
   const body = await request.json();
   const t = cookies().get("admin_token")?.value || "";
   const res = await fetch(`${API_BASE}/products`, {
