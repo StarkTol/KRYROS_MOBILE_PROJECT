@@ -398,8 +398,10 @@ export class ProductsService {
     let flashSalePriceValue: number | undefined = undefined;
     if (typeof data.isFlashSale === 'boolean') {
       if (data.isFlashSale) {
-        // Default to 48 hours if no end provided
-        flashSaleEndValue = data.flashSaleEnd ? new Date(data.flashSaleEnd) : new Date(Date.now() + 1000 * 60 * 60 * 48);
+        // Default to 48 hours if no end provided; also guard against past-dates
+        const now = new Date();
+        const desiredEnd = data.flashSaleEnd ? new Date(data.flashSaleEnd) : new Date(now.getTime() + 1000 * 60 * 60 * 48);
+        flashSaleEndValue = desiredEnd > now ? desiredEnd : new Date(now.getTime() + 1000 * 60 * 60 * 48);
         flashSalePriceValue = data.flashSalePrice !== undefined ? data.flashSalePrice : undefined;
       } else {
         flashSaleEndValue = data.flashSaleEnd !== undefined ? (data.flashSaleEnd ? new Date(data.flashSaleEnd) : null) : null;
