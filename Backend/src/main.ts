@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { execSync } from 'child_process';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const isProd = (process.env.NODE_ENV || 'development') === 'production';
@@ -50,6 +51,10 @@ async function bootstrap() {
   }
   const app = await NestFactory.create(AppModule);
   
+  // Increase request body size limits to allow image uploads via base64 (data URLs)
+  app.use(json({ limit: '10mb' }));
+  app.use(urlencoded({ limit: '10mb', extended: true }));
+
   // Enable CORS for multiple origins
   const corsList = (process.env.CORS_ORIGINS ||
     process.env.FRONTEND_URL ||
