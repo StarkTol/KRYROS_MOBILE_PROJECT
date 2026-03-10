@@ -15,12 +15,7 @@ export default function WhatsAppWidget(props: Props) {
   const greeting = props.greeting || "Hello! How can I help you today?";
   const [message, setMessage] = useState(props.prefill || "");
 
-  useEffect(() => {
-    if (!props.prefill && typeof window !== "undefined") {
-      const url = window.location.href;
-      setMessage(`Hi, I have a question about ${url}`);
-    }
-  }, [props.prefill]);
+  // Removed automatic URL prefill from the message to keep it clean.
 
   const link = useMemo(() => {
     const clean = String(phone).replace(/[^0-9]/g, "");
