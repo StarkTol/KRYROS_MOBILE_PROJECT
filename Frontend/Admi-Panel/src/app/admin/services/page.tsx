@@ -190,21 +190,8 @@ export default function ServicesPage() {
       {activeTab === "services" && (
         <>
           {!loading && !services.length && (
-            <div className="flex items-center justify-between bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="text-sm text-yellow-900">No services found. You can seed some sample services for a quick start.</div>
-              <button
-                onClick={async () => {
-                  const ok = confirm("Seed sample services?");
-                  if (!ok) return;
-                  const res = await fetch("/internal/admin/services/seed", { method: "POST" });
-                  const body = await res.json().catch(() => ({}));
-                  if (!res.ok) alert(body?.error || "Failed to seed");
-                  await load();
-                }}
-                className="btn-primary"
-              >
-                Seed Sample Services
-              </button>
+            <div className="p-4 border border-slate-200 rounded-lg bg-white text-sm text-slate-600">
+              No services found.
             </div>
           )}
           {/* Quick Create */}

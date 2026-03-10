@@ -107,42 +107,7 @@ export default function ProductsPage() {
         </div>
         <div className="flex items-center gap-2">
           <button onClick={load} className="btn-secondary">Refresh</button>
-          {!loading && !products.length && (
-            <button
-              onClick={async () => {
-                const ok = confirm("Seed sample products? This will add a few demo products.");
-                if (!ok) return;
-                const res = await fetch("/internal/admin/products/seed", { method: "POST" });
-                const body = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                  alert(body?.error || "Failed to seed products");
-                } else {
-                  await load();
-                }
-              }}
-              className="btn-primary"
-            >
-              Seed Sample Products
-            </button>
-          )}
-          {tab === "flash" && (
-            <button
-              onClick={async () => {
-                const ok = confirm("Seed flash sale deals on a few products?");
-                if (!ok) return;
-                const res = await fetch("/internal/admin/products/flash-sales/seed", { method: "POST" });
-                const body = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                  alert(body?.error || "Failed to seed flash sales");
-                } else {
-                  await load();
-                }
-              }}
-              className="btn-primary"
-            >
-              Seed Flash Sales
-            </button>
-          )}
+          {/* Removed seed actions */}
         </div>
       </div>
 

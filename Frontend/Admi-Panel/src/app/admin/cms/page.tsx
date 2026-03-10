@@ -237,27 +237,7 @@ export default function CMSPage() {
             <button onClick={() => setShowAdd(false)} className="btn-secondary">
               Cancel
             </button>
-            <button
-              onClick={async () => {
-                try {
-                  setSaving(true);
-                  setError(null);
-                  const res = await fetch("/internal/cms/banners/seed", { method: "POST", credentials: "same-origin" });
-                  const body = await res.json().catch(() => ({}));
-                  if (!res.ok) throw new Error(body?.error || "Failed to seed banners");
-                  setMessage("Default banners added");
-                  await loadBanners();
-                } catch (e: any) {
-                  setError(e?.message || "Failed to add default banners");
-                } finally {
-                  setSaving(false);
-                }
-              }}
-              disabled={saving}
-              className="btn-secondary"
-            >
-              Quick Add Default Banners
-            </button>
+           
           </div>
           {error && <div className="text-sm text-red-600">{error}</div>}
           {message && <div className="text-sm text-green-600">{message}</div>}
@@ -631,24 +611,7 @@ export default function CMSPage() {
               >
                 Quick Add Sample
               </button>
-              <button
-                onClick={async () => {
-                  const res = await fetch("/internal/admin/cms/sections/seed", {
-                    method: "POST",
-                    credentials: "same-origin",
-                  });
-                  if (res.ok) {
-                    await loadSections();
-                    alert("Default sections seeded");
-                  } else {
-                    const t = await res.text();
-                    alert(t || "Failed to seed");
-                  }
-                }}
-                className="btn-secondary"
-              >
-                Seed Defaults
-              </button>
+              
             </div>
           </div>
           <div className="space-y-3">
