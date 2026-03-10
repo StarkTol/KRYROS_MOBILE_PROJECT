@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { 
-  Image, 
+  Image as ImageIcon, 
   Layout, 
   FileText, 
   Plus, 
@@ -109,7 +109,7 @@ export default function CMSPage() {
   }
 
   const tabs = [
-    { id: "banners", label: "Banners", icon: Image, count: banners.length },
+    { id: "banners", label: "Banners", icon: ImageIcon, count: banners.length },
     { id: "testimonials", label: "Testimonials", icon: MessageSquare, count: sections.filter((s:any) => s.type === "testimonials" && s.isActive).length },
     { id: "wholesale", label: "Wholesale Deals", icon: Star, count: sections.filter((s:any) => s.type === "wholesale_deals" && s.isActive).length },
   ];
@@ -329,7 +329,7 @@ export default function CMSPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="h-12 w-24 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
-                      <Image className="h-6 w-6 text-slate-400" />
+                      <ImageIcon className="h-6 w-6 text-slate-400" />
                     </div>
                   </td>
                   <td className="px-6 py-4">
