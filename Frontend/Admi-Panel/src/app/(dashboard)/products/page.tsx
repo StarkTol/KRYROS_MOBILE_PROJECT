@@ -35,6 +35,27 @@ export default function ProductsPage() {
     images: [] as string[],
   });
 
+  async function compressImage(file: File, maxWidth = 1500, quality = 0.8): Promise<string> {
+    const blobURL = URL.createObjectURL(file);
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = blobURL;
+    });
+    const scale = Math.min(1, maxWidth / img.width);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.width * scale);
+    canvas.height = Math.round(img.height * scale);
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(blobURL);
+    // Prefer JPEG to drastically reduce size; fallback to PNG if original is PNG
+    const isPng = file.type.includes("png");
+    const type = isPng ? "image/png" : "image/jpeg";
+    return canvas.toDataURL(type, quality);
+  }
+
   const load = async () => {
     setLoading(true);
     setError(null);
@@ -186,17 +207,10 @@ export default function ProductsPage() {
                   accept="image/*"
                   onChange={async (e) => {
                     const files = Array.from(e.target.files || []);
-                    const readers = await Promise.all(
-                      files.map(
-                        (file) =>
-                          new Promise<string>((resolve) => {
-                            const reader = new FileReader();
-                            reader.onload = () => resolve(String(reader.result));
-                            reader.readAsDataURL(file);
-                          })
-                      )
+                    const compressed = await Promise.all(
+                      files.map((file) => compressImage(file, 1500, 0.8))
                     );
-                    setForm((prev) => ({ ...prev, images: readers }));
+                    setForm((prev) => ({ ...prev, images: compressed }));
                   }}
                 />
                 {form.images.length > 0 && (
