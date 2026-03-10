@@ -93,6 +93,7 @@ export default function CMSPage() {
   const tabs = [
     { id: "banners", label: "Banners", icon: Image, count: banners.length },
     { id: "testimonials", label: "Testimonials", icon: MessageSquare, count: sections.filter((s:any) => s.type === "testimonials" && s.isActive).length },
+    { id: "wholesale", label: "Wholesale Deals", icon: Star, count: sections.filter((s:any) => s.type === "wholesale_deals" && s.isActive).length },
   ];
 
   const filteredBanners = banners.filter((b) =>
@@ -442,6 +443,102 @@ export default function CMSPage() {
             ))}
             {sections.filter((s:any) => s.type === "testimonials").length === 0 && (
               <div className="text-sm text-slate-500">No testimonials section yet. Use “Quick Add Sample”.</div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Wholesale Deals */}
+      {activeTab === "wholesale" && (
+        <div className="admin-card p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Wholesale Deals</h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={async () => {
+                  const sample = [
+                    { title: "iPhone 13 (Bulk)", subtitle: "Min 10 units", price: 9999, minQty: 10 },
+                    { title: "MacBook Air M2 (Bulk)", subtitle: "Min 5 units", price: 54999, minQty: 5 },
+                    { title: "Samsung S24 (Bulk)", subtitle: "Min 8 units", price: 39999, minQty: 8 },
+                  ];
+                  const res = await fetch("/internal/admin/cms/sections", {
+                    method: "POST",
+                    credentials: "same-origin",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ type: "wholesale_deals", title: "Featured Wholesale Deals", isActive: true, order: 5, config: { items: sample } }),
+                  });
+                  if (res.ok) {
+                    await loadSections();
+                    alert("Wholesale deals section created/updated");
+                  } else {
+                    const t = await res.text();
+                    alert(t || "Failed to save");
+                  }
+                }}
+                className="btn-secondary"
+              >
+                Quick Add Sample
+              </button>
+              <button
+                onClick={async () => {
+                  const res = await fetch("/internal/admin/cms/sections/seed", {
+                    method: "POST",
+                    credentials: "same-origin",
+                  });
+                  if (res.ok) {
+                    await loadSections();
+                    alert("Default sections seeded");
+                  } else {
+                    const t = await res.text();
+                    alert(t || "Failed to seed");
+                  }
+                }}
+                className="btn-secondary"
+              >
+                Seed Defaults
+              </button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {sections.filter((s:any) => s.type === "wholesale_deals").map((s:any) => (
+              <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <p className="font-medium">{s.title || "Wholesale Deals"}</p>
+                  <p className="text-sm text-slate-500">Items: {Array.isArray(s.config?.items) ? s.config.items.length : 0}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      defaultChecked={s.isActive}
+                      onChange={async (e) => {
+                        await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                          method: "PUT",
+                          credentials: "same-origin",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ isActive: e.target.checked }),
+                        });
+                        await loadSections();
+                      }}
+                    />
+                    Active
+                  </label>
+                  <button
+                    onClick={async () => {
+                      const ok = confirm("Delete this section?");
+                      if (!ok) return;
+                      const res = await fetch(`/internal/admin/cms/sections/${s.id}`, { method: "DELETE", credentials: "same-origin" });
+                      if (res.ok) await loadSections();
+                    }}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {sections.filter((s:any) => s.type === "wholesale_deals").length === 0 && (
+              <div className="text-sm text-slate-500">No wholesale deals section yet. Use “Quick Add Sample”.</div>
             )}
           </div>
         </div>

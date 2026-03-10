@@ -88,6 +88,29 @@ export class CMSService {
         data: { isActive: true },
       });
     }
+
+    // Ensure a Wholesale Deals section exists and enabled (with sample items)
+    const wholesale = await this.prisma.cMSSection.findFirst({
+      where: { type: 'wholesale_deals' },
+    });
+    if (!wholesale) {
+      await this.prisma.cMSSection.create({
+        data: {
+          type: 'wholesale_deals',
+          title: 'Featured Wholesale Deals',
+          isActive: true,
+          order: 5,
+          config: {
+            items: [
+              { title: 'iPhone 13 (Bulk)', subtitle: 'Min 10 units', price: 9999, minQty: 10 },
+              { title: 'MacBook Air M2 (Bulk)', subtitle: 'Min 5 units', price: 54999, minQty: 5 },
+              { title: 'Samsung S24 (Bulk)', subtitle: 'Min 8 units', price: 39999, minQty: 8 },
+            ],
+          } as any,
+        } as any,
+      });
+    }
+
     return { success: true };
   }
 }

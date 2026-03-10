@@ -125,6 +125,17 @@ export const walletApi = {
 // CMS API
 export const cmsApi = {
   getBanners: () => fetchApi<any[]>('/cms/banners'),
+  getSections: () => fetchApi<any[]>('/cms/sections'),
+};
+
+// Wholesale API
+export const wholesaleApi = {
+  getAccount: (userId: string) => fetchApi<any>(`/wholesale/${userId}`),
+  apply: (data: any) =>
+    fetchApi<any>('/wholesale/apply', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
 
 export default fetchApi;
