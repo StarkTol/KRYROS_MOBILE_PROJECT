@@ -21,7 +21,6 @@ import {
 import { Logo } from "./Logo"
 import { AuthButtons } from "./AuthButtons"
 import { useCart } from "@/providers/CartProvider"
-import { useEffect, useState } from "react"
 import { wishlistApi } from "@/lib/api"
 import { megaMenuCategories } from "@/lib/store-data"
 
