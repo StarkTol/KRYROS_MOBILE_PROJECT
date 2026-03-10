@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { CreateProductDto } from './dto/create-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -113,6 +114,83 @@ export class ProductsService {
         inventory: true,
       },
     });
+  }
+
+  private toSlug(input: string) {
+    return input
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  async create(data: CreateProductDto) {
+    const name = data.name.trim();
+    const baseSlug = this.toSlug(name);
+    let slug = baseSlug;
+    let i = 2;
+    while (await this.prisma.product.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${i++}`;
+    }
+
+    const categorySlug = data.categorySlug?.trim().toLowerCase() || 'general';
+    const brandSlug = data.brandSlug?.trim().toLowerCase();
+
+    const category = await this.prisma.category.upsert({
+      where: { slug: categorySlug },
+      update: {},
+      create: { name: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: categorySlug, isActive: true },
+    });
+
+    let brandId: string | undefined = undefined;
+    if (brandSlug) {
+      const brand = await this.prisma.brand.upsert({
+        where: { slug: brandSlug },
+        update: {},
+        create: { name: brandSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: brandSlug },
+      });
+      brandId = brand.id;
+    }
+
+    const product = await this.prisma.product.create({
+      data: {
+        name,
+        slug,
+        description: data.description,
+        shortDescription: data.shortDescription ?? data.description,
+        price: data.price,
+        sku: data.sku,
+        categoryId: category.id,
+        brandId,
+        isActive: data.isActive ?? true,
+        isFeatured: data.isFeatured ?? false,
+      },
+    });
+
+    const imgs = Array.isArray(data.imageDataUrls) ? data.imageDataUrls : [];
+    for (let idx = 0; idx < imgs.length; idx++) {
+      const url = imgs[idx];
+      if (typeof url !== 'string' || !url.startsWith('data:image')) continue;
+      await this.prisma.productImage.create({
+        data: {
+          productId: product.id,
+          url,
+          alt: product.name,
+          isPrimary: idx === 0,
+          sortOrder: idx,
+        },
+      });
+    }
+
+    await this.prisma.inventory.create({
+      data: {
+        productId: product.id,
+        stock: 0,
+        reservedStock: 0,
+      },
+    });
+
+    return this.findById(product.id);
   }
 
   async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {

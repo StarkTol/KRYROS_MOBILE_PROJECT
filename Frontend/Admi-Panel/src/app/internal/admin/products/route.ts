@@ -13,3 +13,19 @@ export async function GET() {
   }
   return NextResponse.json(JSON.parse(text));
 }
+
+export async function POST(request: Request) {
+  const body = await request.json();
+  const token = (await import("next/headers")).cookies().then((c) => c.get("admin_token")?.value || "");
+  const t = await token;
+  const res = await fetch(`${API_BASE}/products`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    return NextResponse.json({ error: text || "Failed to create product" }, { status: res.status });
+  }
+  return NextResponse.json(JSON.parse(text));
+}

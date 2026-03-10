@@ -21,6 +21,19 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [tab, setTab] = useState<"all" | "featured" | "flash">("all");
+  const [showCreate, setShowCreate] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({
+    name: "",
+    sku: "",
+    price: "",
+    description: "",
+    categorySlug: "general",
+    brandSlug: "",
+    isFeatured: false,
+    isActive: true,
+    images: [] as string[],
+  });
 
   const load = async () => {
     setLoading(true);
@@ -88,6 +101,170 @@ export default function ProductsPage() {
             </button>
           )}
         </div>
+      </div>
+
+      <div className="admin-card p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-900">Add New Product</h2>
+            <p className="text-sm text-slate-500">Upload product details and images</p>
+          </div>
+          <button onClick={() => setShowCreate(v => !v)} className="btn-secondary">
+            {showCreate ? "Close" : "Add Product"}
+          </button>
+        </div>
+        {showCreate && (
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <input
+                placeholder="Product name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="admin-input w-full"
+              />
+              <input
+                placeholder="SKU"
+                value={form.sku}
+                onChange={(e) => setForm({ ...form, sku: e.target.value })}
+                className="admin-input w-full"
+              />
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Price"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                className="admin-input w-full"
+              />
+              <textarea
+                placeholder="Description"
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                className="admin-input w-full h-24"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  placeholder="Category (slug)"
+                  value={form.categorySlug}
+                  onChange={(e) => setForm({ ...form, categorySlug: e.target.value })}
+                  className="admin-input w-full"
+                />
+                <input
+                  placeholder="Brand (slug)"
+                  value={form.brandSlug}
+                  onChange={(e) => setForm({ ...form, brandSlug: e.target.value })}
+                  className="admin-input w-full"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                  />
+                  Active
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={form.isFeatured}
+                    onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+                  />
+                  Featured
+                </label>
+              </div>
+            </div>
+            <div>
+              <div className="border rounded-lg p-4 bg-slate-50">
+                <p className="text-sm font-medium text-slate-700">Images</p>
+                <p className="text-xs text-slate-500 mb-2">Upload one or more images. First image becomes primary.</p>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const readers = await Promise.all(
+                      files.map(
+                        (file) =>
+                          new Promise<string>((resolve) => {
+                            const reader = new FileReader();
+                            reader.onload = () => resolve(String(reader.result));
+                            reader.readAsDataURL(file);
+                          })
+                      )
+                    );
+                    setForm((prev) => ({ ...prev, images: readers }));
+                  }}
+                />
+                {form.images.length > 0 && (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {form.images.map((src, i) => (
+                      <div key={i} className="aspect-square rounded-md overflow-hidden border bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  disabled={creating}
+                  onClick={async () => {
+                    try {
+                      if (!form.name || !form.sku || !form.price || !form.description) {
+                        alert("Please fill in name, SKU, price and description.");
+                        return;
+                      }
+                      setCreating(true);
+                      const payload = {
+                        name: form.name,
+                        sku: form.sku,
+                        price: Number(form.price),
+                        description: form.description,
+                        categorySlug: form.categorySlug || "general",
+                        brandSlug: form.brandSlug || undefined,
+                        isActive: form.isActive,
+                        isFeatured: form.isFeatured,
+                        imageDataUrls: form.images,
+                      };
+                      const res = await fetch("/internal/admin/products", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                      });
+                      const body = await res.json().catch(() => ({}));
+                      if (!res.ok) throw new Error(body?.error || "Failed to create product");
+                      setShowCreate(false);
+                      setForm({
+                        name: "",
+                        sku: "",
+                        price: "",
+                        description: "",
+                        categorySlug: "general",
+                        brandSlug: "",
+                        isFeatured: false,
+                        isActive: true,
+                        images: [],
+                      });
+                      await load();
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : "Failed to create product");
+                    } finally {
+                      setCreating(false);
+                    }
+                  }}
+                  className="btn-primary"
+                >
+                  {creating ? "Creating..." : "Save Product"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="admin-card p-3 flex gap-2">
