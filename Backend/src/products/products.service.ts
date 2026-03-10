@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
@@ -260,6 +261,124 @@ export class ProductsService {
     });
 
     return this.findById(product.id);
+  }
+
+  async update(id: string, data: UpdateProductDto) {
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Product not found');
+
+    let slug: string | undefined = undefined;
+    if (typeof data.slug === 'string' && data.slug.trim()) {
+      const desired = this.toSlug(data.slug);
+      if (desired !== existing.slug) {
+        let s = desired;
+        let i = 2;
+        while (await this.prisma.product.findUnique({ where: { slug: s } })) {
+          s = `${desired}-${i++}`;
+        }
+        slug = s;
+      }
+    } else if (typeof data.name === 'string' && data.name.trim()) {
+      const desired = this.toSlug(data.name);
+      if (desired !== existing.slug) {
+        let s = desired;
+        let i = 2;
+        while (await this.prisma.product.findUnique({ where: { slug: s } })) {
+          s = `${desired}-${i++}`;
+        }
+        slug = s;
+      }
+    }
+
+    let categoryId: string | undefined;
+    if (typeof data.categorySlug === 'string' && data.categorySlug.trim()) {
+      const cslug = data.categorySlug.trim().toLowerCase();
+      const cat = await this.prisma.category.upsert({
+        where: { slug: cslug },
+        update: {},
+        create: { name: cslug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: cslug, isActive: true },
+      });
+      categoryId = cat.id;
+    }
+    let brandId: string | null | undefined;
+    if (data.brandSlug !== undefined) {
+      const bslug = (data.brandSlug || '').trim().toLowerCase();
+      if (bslug) {
+        const brand = await this.prisma.brand.upsert({
+          where: { slug: bslug },
+          update: {},
+          create: { name: bslug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: bslug },
+        });
+        brandId = brand.id;
+      } else {
+        brandId = null;
+      }
+    }
+
+    const updated = await this.prisma.product.update({
+      where: { id },
+      data: {
+        name: data.name ?? undefined,
+        slug: slug ?? undefined,
+        description: data.description ?? undefined,
+        shortDescription: data.shortDescription ?? undefined,
+        price: data.price ?? undefined,
+        isActive: typeof data.isActive === 'boolean' ? data.isActive : undefined,
+        isFeatured: typeof data.isFeatured === 'boolean' ? data.isFeatured : undefined,
+        categoryId: categoryId ?? undefined,
+        brandId: brandId,
+      },
+    });
+
+    if (Array.isArray(data.imageDataUrls)) {
+      if (data.replaceImages !== false) {
+        await this.prisma.productImage.deleteMany({ where: { productId: id } });
+      }
+      for (let idx = 0; idx < data.imageDataUrls.length; idx++) {
+        const url = data.imageDataUrls[idx];
+        if (typeof url !== 'string' || !url.startsWith('data:image')) continue;
+        await this.prisma.productImage.create({
+          data: {
+            productId: id,
+            url,
+            alt: updated.name,
+            isPrimary: idx === 0,
+            sortOrder: idx,
+          },
+        });
+      }
+    }
+
+    return this.findById(id);
+  }
+
+  async updateWithFiles(id: string, data: UpdateProductDto, files: Express.Multer.File[]) {
+    const existing = await this.prisma.product.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Product not found');
+
+    const res = await this.update(id, data);
+
+    if (Array.isArray(files) && files.length > 0) {
+      if (data.replaceImages !== false) {
+        await this.prisma.productImage.deleteMany({ where: { productId: id } });
+      }
+      for (let idx = 0; idx < files.length; idx++) {
+        const f = files[idx];
+        if (!f || !f.buffer || !f.mimetype) continue;
+        const dataUrl = `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
+        await this.prisma.productImage.create({
+          data: {
+            productId: id,
+            url: dataUrl,
+            alt: res.name,
+            isPrimary: idx === 0,
+            sortOrder: idx,
+          },
+        });
+      }
+    }
+
+    return this.findById(id);
   }
 
   async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {

@@ -4,6 +4,7 @@ import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateProductFlagsDto } from './dto/update-product-flags.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Products')
@@ -65,6 +66,24 @@ export class ProductsController {
   createUpload(@Body() body: CreateProductDto, @UploadedFiles() files: { images?: Express.Multer.File[] }) {
     const imgs = files?.images || [];
     return this.productsService.createWithFiles(body, imgs);
+  }
+
+  @Put(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update product details' })
+  update(@Param('id') id: string, @Body() body: UpdateProductDto) {
+    return this.productsService.update(id, body);
+  }
+
+  @Post(':id/upload')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
+  @ApiOperation({ summary: 'Update product with image files (multipart/form-data)' })
+  updateUpload(@Param('id') id: string, @Body() body: UpdateProductDto, @UploadedFiles() files: { images?: Express.Multer.File[] }) {
+    const imgs = files?.images || [];
+    return this.productsService.updateWithFiles(id, body, imgs);
   }
 
   @Post('seed')

@@ -35,6 +35,18 @@ export default function ProductsPage() {
     images: [] as string[],
   });
   const [files, setFiles] = useState<File[]>([]);
+  const [editItem, setEditItem] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    price: "",
+    description: "",
+    categorySlug: "",
+    brandSlug: "",
+    isActive: true,
+    isFeatured: false,
+    images: [] as string[],
+  });
+  const [editFiles, setEditFiles] = useState<File[]>([]);
 
   async function compressImage(file: File, maxWidth = 1500, quality = 0.8): Promise<string> {
     const blobURL = URL.createObjectURL(file);
@@ -265,6 +277,24 @@ export default function ProductsPage() {
                           method: "POST",
                           body: formData,
                         });
+                        if (res.status === 404) {
+                          const fallbackPayload = {
+                            name: form.name,
+                            sku: form.sku,
+                            price: Number(form.price),
+                            description: form.description,
+                            categorySlug: form.categorySlug || "general",
+                            brandSlug: form.brandSlug || undefined,
+                            isActive: form.isActive,
+                            isFeatured: form.isFeatured,
+                            imageDataUrls: form.images,
+                          };
+                          res = await fetch("/internal/admin/products", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(fallbackPayload),
+                          });
+                        }
                       } else {
                         const payload = {
                           name: form.name,
@@ -415,7 +445,26 @@ export default function ProductsPage() {
                     />
                   </td>
                   )}
-                  <td className="text-right">
+                  <td className="text-right space-x-2">
+                    <button
+                      onClick={() => {
+                        setEditItem(p);
+                        setEditForm({
+                          name: p.name,
+                          price: String(p.price ?? ""),
+                          description: "",
+                          categorySlug: "",
+                          brandSlug: "",
+                          isActive: p.isActive !== false,
+                          isFeatured: !!p.isFeatured,
+                          images: [],
+                        });
+                        setEditFiles([]);
+                      }}
+                      className="btn-secondary"
+                    >
+                      Edit
+                    </button>
                     <button
                       disabled={savingId === p.id}
                       onClick={async () => {
@@ -461,5 +510,171 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+    {editItem && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Edit Product</h3>
+            <button onClick={() => setEditItem(null)} className="btn-secondary">Close</button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
+              <input
+                placeholder="Product name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                className="admin-input w-full"
+              />
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="Price"
+                value={editForm.price}
+                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
+                className="admin-input w-full"
+              />
+              <textarea
+                placeholder="Description"
+                value={editForm.description}
+                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                className="admin-input w-full h-24"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  placeholder="Category (slug)"
+                  value={editForm.categorySlug}
+                  onChange={(e) => setEditForm({ ...editForm, categorySlug: e.target.value })}
+                  className="admin-input w-full"
+                />
+                <input
+                  placeholder="Brand (slug)"
+                  value={editForm.brandSlug}
+                  onChange={(e) => setEditForm({ ...editForm, brandSlug: e.target.value })}
+                  className="admin-input w-full"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isActive}
+                    onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                  />
+                  Active
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={editForm.isFeatured}
+                    onChange={(e) => setEditForm({ ...editForm, isFeatured: e.target.checked })}
+                  />
+                  Featured
+                </label>
+              </div>
+            </div>
+            <div>
+              <div className="border rounded-lg p-4 bg-slate-50">
+                <p className="text-sm font-medium text-slate-700">Images</p>
+                <p className="text-xs text-slate-500 mb-2">Upload new images to replace or add.</p>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const previews = await Promise.all(files.map((f) => compressImage(f, 1800, 0.9)));
+                    setEditForm((prev) => ({ ...prev, images: previews }));
+                    setEditFiles(files);
+                  }}
+                />
+                {editForm.images.length > 0 && (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {editForm.images.map((src, i) => (
+                      <div key={i} className="aspect-square rounded-md overflow-hidden border bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={async () => {
+                    if (!editItem) return;
+                    try {
+                      const id = editItem.id;
+                      let res;
+                      if (editFiles.length > 0) {
+                        const formData = new FormData();
+                        if (editForm.name) formData.append("name", editForm.name);
+                        if (editForm.price) formData.append("price", String(Number(editForm.price)));
+                        if (editForm.description) formData.append("description", editForm.description);
+                        if (editForm.categorySlug) formData.append("categorySlug", editForm.categorySlug);
+                        if (editForm.brandSlug) formData.append("brandSlug", editForm.brandSlug);
+                        formData.append("isActive", String(editForm.isActive));
+                        formData.append("isFeatured", String(editForm.isFeatured));
+                        formData.append("replaceImages", "true");
+                        for (const f of editFiles) {
+                          const recompressed = await compressImage(f, 2000, 0.9);
+                          const resp = await fetch(recompressed);
+                          const blob = await resp.blob();
+                          formData.append("images", new File([blob], f.name.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg"), { type: "image/jpeg" }));
+                        }
+                        res = await fetch(`/internal/admin/products/${id}/upload`, { method: "POST", body: formData });
+                        if (res.status === 404) {
+                          const fallbackPayload: any = {
+                            ...(editForm.name ? { name: editForm.name } : {}),
+                            ...(editForm.price ? { price: Number(editForm.price) } : {}),
+                            ...(editForm.description ? { description: editForm.description } : {}),
+                            ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
+                            ...(editForm.brandSlug ? { brandSlug: editForm.brandSlug } : {}),
+                            isActive: editForm.isActive,
+                            isFeatured: editForm.isFeatured,
+                            ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
+                          };
+                          res = await fetch(`/internal/admin/products/${id}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(fallbackPayload),
+                          });
+                        }
+                      } else {
+                        const payload: any = {
+                          ...(editForm.name ? { name: editForm.name } : {}),
+                          ...(editForm.price ? { price: Number(editForm.price) } : {}),
+                          ...(editForm.description ? { description: editForm.description } : {}),
+                          ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
+                          ...(editForm.brandSlug ? { brandSlug: editForm.brandSlug } : {}),
+                          isActive: editForm.isActive,
+                          isFeatured: editForm.isFeatured,
+                          ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
+                        };
+                        res = await fetch(`/internal/admin/products/${id}`, {
+                          method: "PUT",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        });
+                      }
+                      const body = await res.json().catch(() => ({}));
+                      if (!res.ok) throw new Error(body?.error || "Failed to update product");
+                      setEditItem(null);
+                      setEditFiles([]);
+                      await load();
+                    } catch (e) {
+                      alert(e instanceof Error ? e.message : "Failed to update product");
+                    }
+                  }}
+                  className="btn-primary"
+                >
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   );
 }
