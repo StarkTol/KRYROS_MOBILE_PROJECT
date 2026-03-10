@@ -382,14 +382,40 @@ export class ProductsService {
     return this.findById(id);
   }
 
+  async remove(id: string) {
+    try {
+      await this.prisma.product.delete({ where: { id } });
+      return { success: true, id };
+    } catch (e: any) {
+      // Fallback to soft delete if constrained by foreign keys
+      await this.prisma.product.update({ where: { id }, data: { isActive: false } });
+      return { success: true, id, softDeleted: true };
+    }
+  }
+
   async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {
+    let flashSaleEndValue: Date | null | undefined = undefined;
+    let flashSalePriceValue: number | undefined = undefined;
+    if (typeof data.isFlashSale === 'boolean') {
+      if (data.isFlashSale) {
+        // Default to 48 hours if no end provided
+        flashSaleEndValue = data.flashSaleEnd ? new Date(data.flashSaleEnd) : new Date(Date.now() + 1000 * 60 * 60 * 48);
+        flashSalePriceValue = data.flashSalePrice !== undefined ? data.flashSalePrice : undefined;
+      } else {
+        flashSaleEndValue = data.flashSaleEnd !== undefined ? (data.flashSaleEnd ? new Date(data.flashSaleEnd) : null) : null;
+        flashSalePriceValue = data.flashSalePrice !== undefined ? data.flashSalePrice : undefined;
+      }
+    } else {
+      flashSaleEndValue = data.flashSaleEnd !== undefined ? (data.flashSaleEnd ? new Date(data.flashSaleEnd) : null) : undefined;
+      flashSalePriceValue = data.flashSalePrice !== undefined ? data.flashSalePrice : undefined;
+    }
     const product = await this.prisma.product.update({
       where: { id },
       data: {
         isFeatured: typeof data.isFeatured === 'boolean' ? data.isFeatured : undefined,
         isFlashSale: typeof data.isFlashSale === 'boolean' ? data.isFlashSale : undefined,
-        flashSaleEnd: data.flashSaleEnd !== undefined ? (data.flashSaleEnd ? new Date(data.flashSaleEnd) : null) : undefined,
-        flashSalePrice: data.flashSalePrice !== undefined ? data.flashSalePrice : undefined,
+        flashSaleEnd: flashSaleEndValue,
+        flashSalePrice: flashSalePriceValue,
       },
     });
     return product;

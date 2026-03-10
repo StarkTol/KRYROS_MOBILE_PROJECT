@@ -114,4 +114,12 @@ export class ProductsController {
   findBySlug(@Param('slug') slug: string) {
     return this.productsService.findBySlug(slug);
   }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete product (hard delete or soft fallback)' })
+  async remove(@Param('id') id: string) {
+    return this.productsService.remove(id);
+  }
 }

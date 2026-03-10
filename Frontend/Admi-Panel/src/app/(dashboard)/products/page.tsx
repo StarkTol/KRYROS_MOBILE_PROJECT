@@ -416,7 +416,7 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {(tab === "featured" ? products.filter(p => !!p.isFeatured) : tab === "flash" ? products : products).map((p) => (
+              {(tab === "featured" ? products.filter(p => !!p.isFeatured) : tab === "flash" ? products.filter(p => !!(p as any).isFlashSale) : products).map((p) => (
                 <tr key={p.id}>
                   <td className="font-medium text-slate-900">{p.name}</td>
                   <td className="font-mono text-sm">{p.sku}</td>
@@ -495,6 +495,23 @@ export default function ProductsPage() {
                       className="btn-secondary"
                     >
                       Edit
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const ok = confirm(`Delete product "${p.name}"? This cannot be undone.`);
+                        if (!ok) return;
+                        try {
+                          const res = await fetch(`/internal/admin/products/${p.id}`, { method: "DELETE" });
+                          const body = await res.json().catch(() => ({}));
+                          if (!res.ok) throw new Error(body?.error || "Failed to delete");
+                          setProducts(prev => prev.filter(x => x.id !== p.id));
+                        } catch (e) {
+                          alert(e instanceof Error ? e.message : "Failed to delete");
+                        }
+                      }}
+                      className="btn-danger"
+                    >
+                      Delete
                     </button>
                     <button
                       disabled={savingId === p.id}
