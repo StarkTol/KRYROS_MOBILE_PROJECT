@@ -9,6 +9,7 @@ import { wishlistApi } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/providers/CartProvider";
+import { useToast } from "@/components/ui/use-toast";
 
 // Accept any product format
 interface ProductCardProps {
@@ -50,6 +51,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const { addItem } = useCart();
+  const { toast } = useToast();
 
   // Normalize product data for display
   const displayImage = getProductImage(product);
@@ -212,10 +214,18 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
                 return;
               }
               if (isWishlisted) {
-                await wishlistApi.remove(id);
+                const res = await wishlistApi.remove(id);
+                if (res.error) {
+                  toast({ title: "Failed to remove from wishlist", description: res.error, variant: "destructive" });
+                  return;
+                }
                 setIsWishlisted(false);
               } else {
-                await wishlistApi.add(id);
+                const res = await wishlistApi.add(id);
+                if (res.error) {
+                  toast({ title: "Failed to add to wishlist", description: res.error, variant: "destructive" });
+                  return;
+                }
                 setIsWishlisted(true);
               }
               if (typeof window !== "undefined") {
@@ -286,10 +296,18 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
                 return;
               }
               if (isWishlisted) {
-                await wishlistApi.remove(id);
+                const res = await wishlistApi.remove(id);
+                if (res.error) {
+                  toast({ title: "Failed to remove from wishlist", description: res.error, variant: "destructive" });
+                  return;
+                }
                 setIsWishlisted(false);
               } else {
-                await wishlistApi.add(id);
+                const res = await wishlistApi.add(id);
+                if (res.error) {
+                  toast({ title: "Failed to add to wishlist", description: res.error, variant: "destructive" });
+                  return;
+                }
                 setIsWishlisted(true);
               }
               if (typeof window !== "undefined") {

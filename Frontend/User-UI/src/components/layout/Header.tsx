@@ -87,12 +87,15 @@ export function Header() {
   useEffect(() => {
     let active = true
     const refresh = () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+      if (!token) { setWishlistCount(0); return }
       wishlistApi.getMine()
         .then(res => {
           if (!active) return
+          if (res?.error) { setWishlistCount(0); return }
           setWishlistCount(Array.isArray(res.data) ? res.data.length : 0)
         })
-        .catch(() => {})
+        .catch(() => { if (active) setWishlistCount(0) })
     }
     refresh()
     const handler = () => refresh()

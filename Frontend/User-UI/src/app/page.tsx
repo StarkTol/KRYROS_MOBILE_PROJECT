@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { useCart } from '@/providers/CartProvider'
 import { useAuth } from '@/providers/AuthProvider'
 import { wishlistApi } from '@/lib/api'
+import { useToast } from '@/components/ui/use-toast'
 import { formatPrice, getTimeRemaining, calculateDiscount } from '@/lib/utils'
 import { cmsApi, productsApi, categoriesApi } from '@/lib/api'
 import type { Product } from '@/types'
@@ -359,6 +360,7 @@ function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart()
   const [isWishlisted, setIsWishlisted] = useState(false)
   const { isAuthenticated } = useAuth()
+  const { toast } = useToast()
 
   const discount = product.salePrice
     ? calculateDiscount(product.price, product.salePrice)
@@ -410,10 +412,18 @@ function ProductCard({ product }: { product: Product }) {
                 return
               }
               if (isWishlisted) {
-                await wishlistApi.remove(id)
+                const res = await wishlistApi.remove(id)
+                if (res.error) {
+                  toast({ title: 'Failed to remove from wishlist', description: res.error, variant: 'destructive' })
+                  return
+                }
                 setIsWishlisted(false)
               } else {
-                await wishlistApi.add(id)
+                const res = await wishlistApi.add(id)
+                if (res.error) {
+                  toast({ title: 'Failed to add to wishlist', description: res.error, variant: 'destructive' })
+                  return
+                }
                 setIsWishlisted(true)
               }
               if (typeof window !== 'undefined') {
