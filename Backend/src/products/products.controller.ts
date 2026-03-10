@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateProductFlagsDto } from './dto/update-product-flags.dto';
 import { CreateProductDto } from './dto/create-product.dto';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Products')
 @Controller('products')
@@ -54,6 +55,16 @@ export class ProductsController {
   @ApiOperation({ summary: 'Create product (admin)' })
   create(@Body() body: CreateProductDto) {
     return this.productsService.create(body);
+  }
+
+  @Post('upload')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 10 }]))
+  @ApiOperation({ summary: 'Create product with image files (multipart/form-data)' })
+  createUpload(@Body() body: CreateProductDto, @UploadedFiles() files: { images?: Express.Multer.File[] }) {
+    const imgs = files?.images || [];
+    return this.productsService.createWithFiles(body, imgs);
   }
 
   @Post('seed')

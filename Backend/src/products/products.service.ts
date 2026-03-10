@@ -193,6 +193,75 @@ export class ProductsService {
     return this.findById(product.id);
   }
 
+  async createWithFiles(data: CreateProductDto, files: Express.Multer.File[]) {
+    const name = data.name.trim();
+    const baseSlug = this.toSlug(name);
+    let slug = baseSlug;
+    let i = 2;
+    while (await this.prisma.product.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${i++}`;
+    }
+
+    const categorySlug = data.categorySlug?.trim().toLowerCase() || 'general';
+    const brandSlug = data.brandSlug?.trim().toLowerCase();
+
+    const category = await this.prisma.category.upsert({
+      where: { slug: categorySlug },
+      update: {},
+      create: { name: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: categorySlug, isActive: true },
+    });
+
+    let brandId: string | undefined = undefined;
+    if (brandSlug) {
+      const brand = await this.prisma.brand.upsert({
+        where: { slug: brandSlug },
+        update: {},
+        create: { name: brandSlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: brandSlug },
+      });
+      brandId = brand.id;
+    }
+
+    const product = await this.prisma.product.create({
+      data: {
+        name,
+        slug,
+        description: data.description,
+        shortDescription: data.shortDescription ?? data.description,
+        price: data.price,
+        sku: data.sku,
+        categoryId: category.id,
+        brandId,
+        isActive: data.isActive ?? true,
+        isFeatured: data.isFeatured ?? false,
+      },
+    });
+
+    for (let idx = 0; idx < files.length; idx++) {
+      const f = files[idx];
+      if (!f || !f.buffer || !f.mimetype) continue;
+      const dataUrl = `data:${f.mimetype};base64,${f.buffer.toString('base64')}`;
+      await this.prisma.productImage.create({
+        data: {
+          productId: product.id,
+          url: dataUrl,
+          alt: product.name,
+          isPrimary: idx === 0,
+          sortOrder: idx,
+        },
+      });
+    }
+
+    await this.prisma.inventory.create({
+      data: {
+        productId: product.id,
+        stock: 0,
+        reservedStock: 0,
+      },
+    });
+
+    return this.findById(product.id);
+  }
+
   async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {
     const product = await this.prisma.product.update({
       where: { id },

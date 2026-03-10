@@ -34,6 +34,7 @@ export default function ProductsPage() {
     isActive: true,
     images: [] as string[],
   });
+  const [files, setFiles] = useState<File[]>([]);
 
   async function compressImage(file: File, maxWidth = 1500, quality = 0.8): Promise<string> {
     const blobURL = URL.createObjectURL(file);
@@ -207,10 +208,11 @@ export default function ProductsPage() {
                   accept="image/*"
                   onChange={async (e) => {
                     const files = Array.from(e.target.files || []);
-                    const compressed = await Promise.all(
-                      files.map((file) => compressImage(file, 1500, 0.8))
+                    const previews = await Promise.all(
+                      files.map((file) => compressImage(file, 1800, 0.9))
                     );
-                    setForm((prev) => ({ ...prev, images: compressed }));
+                    setForm((prev) => ({ ...prev, images: previews }));
+                    setFiles(files);
                   }}
                 />
                 {form.images.length > 0 && (
@@ -234,22 +236,53 @@ export default function ProductsPage() {
                         return;
                       }
                       setCreating(true);
-                      const payload = {
-                        name: form.name,
-                        sku: form.sku,
-                        price: Number(form.price),
-                        description: form.description,
-                        categorySlug: form.categorySlug || "general",
-                        brandSlug: form.brandSlug || undefined,
-                        isActive: form.isActive,
-                        isFeatured: form.isFeatured,
-                        imageDataUrls: form.images,
-                      };
-                      const res = await fetch("/internal/admin/products", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                      });
+                      let res;
+                      if (files.length > 0) {
+                        const formData = new FormData();
+                        formData.append("name", form.name);
+                        formData.append("sku", form.sku);
+                        formData.append("price", String(Number(form.price)));
+                        formData.append("description", form.description);
+                        formData.append("categorySlug", form.categorySlug || "general");
+                        if (form.brandSlug) formData.append("brandSlug", form.brandSlug);
+                        formData.append("isActive", String(form.isActive));
+                        formData.append("isFeatured", String(form.isFeatured));
+                        // Recompress large files to blobs if needed for better size/quality tradeoff
+                        const blobs = await Promise.all(
+                          files.map(async (f) => {
+                            const tooLarge = f.size > 3 * 1024 * 1024;
+                            if (!tooLarge) return f;
+                            const blobUrl = await compressImage(f, 2000, 0.9);
+                            const resp = await fetch(blobUrl);
+                            const blob = await resp.blob();
+                            return new File([blob], f.name.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg"), { type: "image/jpeg" });
+                          })
+                        );
+                        for (const b of blobs) {
+                          formData.append("images", b);
+                        }
+                        res = await fetch("/internal/admin/products/upload", {
+                          method: "POST",
+                          body: formData,
+                        });
+                      } else {
+                        const payload = {
+                          name: form.name,
+                          sku: form.sku,
+                          price: Number(form.price),
+                          description: form.description,
+                          categorySlug: form.categorySlug || "general",
+                          brandSlug: form.brandSlug || undefined,
+                          isActive: form.isActive,
+                          isFeatured: form.isFeatured,
+                          imageDataUrls: form.images,
+                        };
+                        res = await fetch("/internal/admin/products", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        });
+                      }
                       const body = await res.json().catch(() => ({}));
                       if (!res.ok) throw new Error(body?.error || "Failed to create product");
                       setShowCreate(false);
@@ -264,6 +297,7 @@ export default function ProductsPage() {
                         isActive: true,
                         images: [],
                       });
+                      setFiles([]);
                       await load();
                     } catch (e) {
                       alert(e instanceof Error ? e.message : "Failed to create product");
