@@ -19,6 +19,7 @@ async function fetchApi<T>(
 
   try {
     const response = await fetch(`${API_URL}${endpoint}`, {
+      cache: options.cache ?? 'no-store',
       ...options,
       headers,
     });
