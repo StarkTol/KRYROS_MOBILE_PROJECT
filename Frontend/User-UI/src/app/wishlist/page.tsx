@@ -13,6 +13,7 @@ import {
 import { wishlistApi, productsApi } from "@/lib/api";
 import { useCart } from "@/providers/CartProvider";
 import type { Product } from "@/types";
+import { formatPrice } from "@/lib/utils";
 
 export default function WishlistPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -80,11 +81,11 @@ export default function WishlistPage() {
                     {p?.name || "Product"}
                   </Link>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xl font-bold text-slate-900">K {Number(p?.salePrice ?? p?.price ?? 0).toLocaleString()}</span>
+                    <span className="text-xl font-bold text-slate-900">{formatPrice(Number(p?.salePrice ?? p?.price ?? 0))}</span>
                     {p?.salePrice && p?.price && (
                       <>
                         <span className="text-sm text-slate-500 line-through">
-                          K {Number(p.price).toLocaleString()}
+                          {formatPrice(Number(p.price))}
                         </span>
                         <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-600">
                           {Math.round(((Number(p.price) - Number(p.salePrice)) / Number(p.price)) * 100)}% OFF

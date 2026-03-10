@@ -7,6 +7,7 @@ import { CartProvider } from '@/providers/CartProvider'
 import { QueryProvider } from '@/providers/QueryProvider'
 import { AuthProvider } from '@/providers/AuthProvider'
 import { Toaster } from '@/components/ui/toaster'
+import WhatsAppWidget from '@/components/whatsapp/WhatsAppWidget'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -75,6 +76,7 @@ export default function RootLayout({
                 <main className="flex-1">{children}</main>
                 <Footer />
               </div>
+              <WhatsAppWidget />
               <Toaster />
             </CartProvider>
           </AuthProvider>

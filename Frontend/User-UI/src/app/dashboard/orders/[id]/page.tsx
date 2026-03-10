@@ -5,6 +5,7 @@
  import { useRouter } from "next/navigation"
  import { Button } from "@/components/ui/button"
  import { ordersApi } from "@/lib/api"
+ import { formatPrice } from "@/lib/utils"
  import { useAuth } from "@/providers/AuthProvider"
  
  export default function OrderDetailPage({ params }: { params: { id: string } }) {
@@ -88,9 +89,9 @@
                    <p className="font-medium text-slate-900">{item.product?.name || "Item"}</p>
                    <p className="text-sm text-slate-500">Qty: {item.quantity}</p>
                  </div>
-                 <div className="text-sm font-medium text-slate-900">
-                   K {(Number(item.total) || Number(item.price) || 0).toLocaleString()}
-                 </div>
+                <div className="text-sm font-medium text-slate-900">
+                  {formatPrice(Number(item.total || item.price || 0))}
+                </div>
                </div>
              ))}
            </div>
@@ -101,20 +102,20 @@
            <div className="space-y-2 text-sm">
              <div className="flex justify-between">
                <span className="text-slate-600">Subtotal</span>
-               <span className="font-medium text-slate-900">K {(Number(order.subtotal) || 0).toLocaleString()}</span>
+              <span className="font-medium text-slate-900">{formatPrice(Number(order.subtotal || 0))}</span>
              </div>
              <div className="flex justify-between">
                <span className="text-slate-600">Shipping</span>
-               <span className="font-medium text-slate-900">K {(Number(order.shipping) || 0).toLocaleString()}</span>
+              <span className="font-medium text-slate-900">{formatPrice(Number(order.shipping || 0))}</span>
              </div>
              <div className="flex justify-between">
                <span className="text-slate-600">Tax</span>
-               <span className="font-medium text-slate-900">K {(Number(order.tax) || 0).toLocaleString()}</span>
+              <span className="font-medium text-slate-900">{formatPrice(Number(order.tax || 0))}</span>
              </div>
              <hr className="my-2 border-slate-200" />
              <div className="flex justify-between text-base">
                <span className="text-slate-600">Total</span>
-               <span className="font-bold text-slate-900">K {(Number(order.total) || 0).toLocaleString()}</span>
+              <span className="font-bold text-slate-900">{formatPrice(Number(order.total || 0))}</span>
              </div>
            </div>
            <div className="mt-4 text-sm">

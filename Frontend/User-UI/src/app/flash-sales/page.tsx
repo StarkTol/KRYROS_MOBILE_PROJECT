@@ -1,4 +1,5 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kryrosbackend.onrender.com/api'
+import { formatPrice } from '@/lib/utils'
 
 async function getFlashSales() {
   const res = await fetch(`${API_URL}/products/flash-sales`, { cache: 'no-store' })
@@ -16,7 +17,7 @@ export default async function FlashSalesPage() {
           <a key={p.id} href={`/product/${p.slug ?? p.id}`} className="block rounded-xl border bg-white p-4">
             <div className="aspect-square rounded-lg bg-slate-100" />
             <div className="mt-3 text-sm font-medium text-slate-900">{p.name}</div>
-            <div className="text-sm text-slate-600">K {(p.flashSalePrice ?? p.price ?? 0).toLocaleString()}</div>
+            <div className="text-sm text-slate-600">{formatPrice(Number(p.flashSalePrice ?? p.price ?? 0))}</div>
           </a>
         ))}
       </div>

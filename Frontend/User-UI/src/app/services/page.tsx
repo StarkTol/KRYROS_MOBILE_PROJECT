@@ -15,6 +15,7 @@ import {
   CheckCircle,
   Calendar
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 type Service = { id: string; name: string; description?: string; duration: string; price: number; category: string; image?: string };
 
@@ -117,7 +118,7 @@ export default function ServicesPage() {
                 </div>
                 
                 <div className="mt-4 flex items-center justify-between">
-                  <span className="text-lg font-bold text-green-600">K {Number(service.price).toLocaleString()}</span>
+                  <span className="text-lg font-bold text-green-600">{formatPrice(Number(service.price))}</span>
                   <Button size="sm" className="bg-green-500 hover:bg-green-600">
                     Book Now
                   </Button>

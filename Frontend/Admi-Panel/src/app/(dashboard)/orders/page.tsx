@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/utils";
 
 type Order = {
   id: string;
@@ -67,7 +68,7 @@ export default function OrdersPage() {
                   <td className="font-mono">{o.orderNumber}</td>
                   <td>{o.user ? `${o.user.firstName} ${o.user.lastName}` : "—"}</td>
                   <td>{o.user?.email || "—"}</td>
-                  <td>K {Number(o.total).toLocaleString()}</td>
+                  <td>{formatPrice(Number(o.total))}</td>
                   <td><span className="badge badge-neutral">{o.status}</span></td>
                   <td><span className={`badge ${o.paymentStatus === "PAID" ? "badge-success" : o.paymentStatus === "PENDING" ? "badge-warning" : "badge-danger"}`}>{o.paymentStatus}</span></td>
                   <td className="text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</td>

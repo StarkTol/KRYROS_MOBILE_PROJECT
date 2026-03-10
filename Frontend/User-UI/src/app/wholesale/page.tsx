@@ -4,6 +4,7 @@
  import { useAuth } from "@/providers/AuthProvider"
  import { cmsApi, wholesaleApi } from "@/lib/api"
  import { Button } from "@/components/ui/button"
+ import { formatPrice } from "@/lib/utils"
  
  export default function WholesalePage() {
    const { user, isAuthenticated } = useAuth()
@@ -80,7 +81,7 @@
                    <div className="h-32 rounded-lg bg-slate-100" />
                    <p className="mt-3 text-sm font-medium text-slate-900">{d.title || d.product || "Deal"}</p>
                    <p className="text-xs text-slate-600">{d.subtitle || `Min qty: ${d.minQty || 10}`}</p>
-                   <p className="mt-1 text-sm font-semibold text-green-600">{d.price ? `K ${Number(d.price).toLocaleString()}` : ""}</p>
+                   <p className="mt-1 text-sm font-semibold text-green-600">{d.price ? formatPrice(Number(d.price)) : ""}</p>
                  </div>
                ))}
              </div>

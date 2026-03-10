@@ -16,6 +16,7 @@ import {
   Package,
   RefreshCw
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 type Summary = {
   stats: { totalRevenue: number; totalOrders: number; activeUsers: number; creditDisbursed: number };
@@ -58,7 +59,7 @@ export default function ReportsPage() {
   const statCards = useMemo(() => {
     const s = data?.stats;
     if (!s) return [];
-    const fmt = (n: number) => `K ${Number(n || 0).toLocaleString()}`;
+    const fmt = (n: number) => formatPrice(Number(n || 0));
     return [
       { title: "Total Revenue", value: fmt(s.totalRevenue), change: "", trend: "up", icon: DollarSign, color: "green" },
       { title: "Total Orders", value: (s.totalOrders || 0).toLocaleString(), change: "", trend: "up", icon: ShoppingCart, color: "blue" },
@@ -153,7 +154,7 @@ export default function ReportsPage() {
               >
                 <div className="absolute bottom-0 left-0 right-0 bg-green-500 rounded-t-lg group-hover:bg-green-600 transition-colors" style={{ height: "100%" }}></div>
                 <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  K {data.revenue.toLocaleString()}
+                  {formatPrice(Number(data.revenue))}
                 </div>
               </div>
               <span className="text-xs text-slate-500">{data.label}</span>
@@ -183,7 +184,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm text-slate-500 mt-1">
                     <span>{product.sales} sales</span>
-                    <span>K {product.revenue.toLocaleString()}</span>
+                    <span>{formatPrice(Number(product.revenue))}</span>
                   </div>
                   <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                     <div 
@@ -220,7 +221,7 @@ export default function ReportsPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-slate-900">K {txn.amount.toLocaleString()}</p>
+                  <p className="font-semibold text-slate-900">{formatPrice(Number(txn.amount))}</p>
                   <span className={`text-xs px-2 py-0.5 rounded-full ${
                     txn.status === "paid" || txn.status === "completed" ? "bg-green-100 text-green-700" : txn.status === "pending" ? "bg-yellow-100 text-yellow-700" : "bg-red-100 text-red-700"
                   }`}>
@@ -246,7 +247,7 @@ export default function ReportsPage() {
           </div>
           <div className="p-4 bg-slate-50 rounded-xl">
             <p className="text-sm text-slate-500">Total Outstanding</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">K {Number(credit?.totalOutstanding || 0).toLocaleString()}</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{formatPrice(Number(credit?.totalOutstanding || 0))}</p>
             <p className="text-sm text-slate-500 mt-2">&nbsp;</p>
           </div>
           <div className="p-4 bg-slate-50 rounded-xl">

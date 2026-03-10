@@ -167,7 +167,7 @@ export default function WalletPage() {
   ];
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('en-ZM', { style: 'currency', currency: 'ZMW' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
   return (
@@ -356,7 +356,7 @@ export default function WalletPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
-                      {txn.metadata?.fee ? `K ${Number(txn.metadata.fee).toLocaleString()}` : "—"}
+                      {txn.metadata?.fee ? formatAmount(Number(txn.metadata.fee)) : "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {txn.metadata?.method || "—"}

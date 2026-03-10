@@ -45,7 +45,7 @@ export function TopBar() {
         <div className="flex w-full items-center justify-center gap-4 md:w-auto md:justify-end">
           <span className="flex items-center gap-1 text-green-500">
             <Truck className="h-3 w-3" />
-            Free Shipping on Orders Over K 5,000
+            Free Shipping on Orders Over $ 5,000
           </span>
         </div>
       </div>
@@ -179,7 +179,7 @@ export function Header() {
                       <CreditCard className="h-5 w-5 text-green-600" />
                       <div>
                         <p className="text-sm font-semibold text-slate-900">Buy Now, Pay Later</p>
-                        <p className="text-xs text-slate-600">Flexible installment plans on all products over K 2,000</p>
+                        <p className="text-xs text-slate-600">Flexible installment plans on all products over $ 2,000</p>
                       </div>
                     </div>
                   </motion.div>
@@ -296,7 +296,7 @@ export function Header() {
       <div className="hidden border-t border-slate-200 lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-8 px-4 py-2">
           {[
-            { icon: Truck, text: "Free Shipping Over K 5,000" },
+            { icon: Truck, text: "Free Shipping Over $ 5,000" },
             { icon: CreditCard, text: "Flexible Credit Plans" },
             { icon: Headset, text: "24/7 Support" },
           ].map(({ icon: Icon, text }) => (

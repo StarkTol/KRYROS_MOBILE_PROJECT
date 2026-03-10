@@ -15,6 +15,7 @@ import {
   Users,
   Ban
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 const creditRequests = [
   { 
@@ -87,7 +88,7 @@ const creditRequests = [
 const stats = [
   { 
     label: "Total Credit Extended", 
-    value: "K 2,450,000", 
+    value: formatPrice(2450000), 
     icon: DollarSign,
     color: "bg-green-500",
     change: "+18.2%"
@@ -262,11 +263,11 @@ export default function CreditPage() {
                     </div>
                   </td>
                   <td>{request.product}</td>
-                  <td className="font-medium">K {request.amount.toLocaleString()}</td>
+                  <td className="font-medium">{formatPrice(Number(request.amount))}</td>
                   <td>
                     <div>
                       <p>{request.plan}</p>
-                      <p className="text-xs text-slate-500">K {request.monthlyPayment}/mo</p>
+                      <p className="text-xs text-slate-500">{formatPrice(Number(request.monthlyPayment))}/mo</p>
                     </div>
                   </td>
                   <td>

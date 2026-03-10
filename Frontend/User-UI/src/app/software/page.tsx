@@ -15,6 +15,7 @@ import {
   Users,
   Globe
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 const softwareProducts = [
   {
@@ -224,7 +225,7 @@ export default function SoftwarePage() {
                   
                   <div className="mt-4 flex items-center justify-between">
                     <div>
-                      <span className="text-xl font-bold text-slate-900">K {product.price.toLocaleString()}</span>
+                      <span className="text-xl font-bold text-slate-900">{formatPrice(Number(product.price))}</span>
                       <span className="ml-2 text-sm text-slate-500">/ {product.licenseType}</span>
                     </div>
                   </div>

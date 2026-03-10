@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useCart } from "@/providers/CartProvider";
 import type { CartItem as CIC } from "@/types";
+import { formatPrice } from "@/lib/utils";
 
 export default function CartPage() {
   const { items, updateQuantity, removeItem, getSubtotal } = useCart();
@@ -104,7 +105,7 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-bold text-slate-900">K {(unitPrice * ci.quantity).toLocaleString()}</p>
+                        <p className="font-bold text-slate-900">{formatPrice(Number(unitPrice * ci.quantity))}</p>
                       </div>
                     </div>
                   </div>
@@ -128,27 +129,27 @@ export default function CartPage() {
               <div className="mt-6 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium text-slate-900">K {subtotal.toLocaleString()}</span>
+                  <span className="font-medium text-slate-900">{formatPrice(Number(subtotal))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">Discount</span>
-                  <span className="font-medium text-green-600">-K {discount.toLocaleString()}</span>
+                  <span className="font-medium text-green-600">{discount ? `-${formatPrice(Number(discount))}` : formatPrice(0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-600">Shipping</span>
                   <span className="font-medium text-slate-900">
-                    {shipping === 0 ? "Free" : `K ${shipping}`}
+                    {shipping === 0 ? "Free" : formatPrice(Number(shipping))}
                   </span>
                 </div>
                 {shipping > 0 && (
                   <p className="text-xs text-green-600">
-                    Add K {(5000 - subtotal).toLocaleString()} more for free shipping!
+                    Add {formatPrice(Number(5000 - subtotal))} more for free shipping!
                   </p>
                 )}
                 <hr className="my-3 border-slate-200" />
                 <div className="flex justify-between">
                   <span className="text-lg font-semibold text-slate-900">Total</span>
-                  <span className="text-lg font-bold text-slate-900">K {total.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-slate-900">{formatPrice(Number(total))}</span>
                 </div>
               </div>
 
@@ -186,7 +187,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Truck className="h-5 w-5 text-green-500" />
-                  <span>Free shipping on orders over K 5,000</span>
+                  <span>Free shipping on orders over $ 5,000</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <CreditCard className="h-5 w-5 text-green-500" />

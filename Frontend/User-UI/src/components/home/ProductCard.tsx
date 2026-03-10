@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { Heart, ShoppingCart, Eye, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 import { wishlistApi } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import { useRouter } from "next/navigation";
@@ -115,10 +116,10 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
           
           <div className="mt-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-slate-900">K {product?.price?.toLocaleString() || 0}</span>
+              <span className="text-xl font-bold text-slate-900">{formatPrice(Number(product?.price ?? 0))}</span>
               {product?.originalPrice && (
                 <span className="text-sm text-slate-500 line-through">
-                  K {product.originalPrice.toLocaleString()}
+                  {formatPrice(Number(product.originalPrice))}
                 </span>
               )}
             </div>
@@ -279,10 +280,10 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-lg font-bold text-slate-900">K {product?.price?.toLocaleString() || 0}</span>
+          <span className="text-lg font-bold text-slate-900">{formatPrice(Number(product?.price ?? 0))}</span>
           {product?.originalPrice && (
             <span className="text-sm text-slate-500 line-through">
-              K {product.originalPrice.toLocaleString()}
+              {formatPrice(Number(product.originalPrice))}
             </span>
           )}
           <Button

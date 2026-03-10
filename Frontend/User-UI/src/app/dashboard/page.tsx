@@ -18,6 +18,7 @@ import {
   Download
 } from "lucide-react";
 import { ordersApi, walletApi, creditApi, wishlistApi } from "@/lib/api";
+import { formatPrice } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { user, isLoading, isAuthenticated } = useAuth();
@@ -99,7 +100,7 @@ export default function DashboardPage() {
           {[
             { label: "Total Orders", value: String(orders.length), icon: Package, color: "bg-blue-500" },
             { label: "Active Installments", value: String(credits.filter((x:any)=> (x.status||'').toLowerCase()==='active').length), icon: CreditCard, color: "bg-green-500" },
-            { label: "Wallet Balance", value: `K ${Number(wallet?.balance || 0).toLocaleString()}`, icon: Wallet, color: "bg-purple-500" },
+            { label: "Wallet Balance", value: formatPrice(Number(wallet?.balance || 0)), icon: Wallet, color: "bg-purple-500" },
             { label: "Wishlist Items", value: String(wishlistCount), icon: Heart, color: "bg-red-500" },
           ].map((stat) => (
               <div key={stat.label} className="rounded-xl bg-white p-6 shadow-sm">
@@ -164,7 +165,7 @@ export default function DashboardPage() {
                             {order.status || "—"}
                           </span>
                         </td>
-                        <td className="py-4 text-sm font-medium text-slate-900">K {Number(order.total || 0).toLocaleString()}</td>
+                        <td className="py-4 text-sm font-medium text-slate-900">{formatPrice(Number(order.total || 0))}</td>
                         <td className="py-4 text-right">
                           <Link href={`/dashboard/orders/${order.id}`}>
                             <Button variant="ghost" size="sm">
@@ -201,8 +202,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-slate-500">Monthly: K {Number(inst.monthlyPayment || 0).toLocaleString()}</p>
-                        <p className="font-medium text-slate-900">Remaining: K {Number(inst.remainingAmount || 0).toLocaleString()}</p>
+                        <p className="text-sm text-slate-500">Monthly: {formatPrice(Number(inst.monthlyPayment || 0))}</p>
+                        <p className="font-medium text-slate-900">Remaining: {formatPrice(Number(inst.remainingAmount || 0))}</p>
                       </div>
                     </div>
                     <div className="mt-3 h-2 w-full rounded-full bg-slate-100">

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ordersApi } from "@/lib/api";
 import Link from "next/link";
+import { formatPrice } from "@/lib/utils";
 
 export default function TrackPage() {
   const [query, setQuery] = useState("");
@@ -74,7 +75,7 @@ export default function TrackPage() {
               </div>
               <div>
                 <p className="text-slate-500 text-sm">Total</p>
-                <p className="font-medium">K {Number(order.total || 0).toLocaleString()}</p>
+                <p className="font-medium">{formatPrice(Number(order.total || 0))}</p>
               </div>
             </div>
           </div>

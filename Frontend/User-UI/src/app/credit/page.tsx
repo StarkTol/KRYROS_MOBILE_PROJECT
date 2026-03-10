@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { formatPrice } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { 
   CreditCard, 
@@ -148,7 +149,7 @@ export default function CreditPage() {
               <div className="space-y-6">
                 <div>
                   <label className="mb-2 block text-sm font-medium text-slate-700">
-                    Amount Needed (K)
+                    Amount Needed
                   </label>
                   <Input
                     type="number"
@@ -166,8 +167,8 @@ export default function CreditPage() {
                     className="mt-3 w-full accent-green-500"
                   />
                   <div className="mt-1 flex justify-between text-xs text-slate-500">
-                    <span>K 1,000</span>
-                    <span>K 100,000</span>
+                    <span>{formatPrice(1000)}</span>
+                    <span>{formatPrice(100000)}</span>
                   </div>
                 </div>
                 
@@ -200,19 +201,19 @@ export default function CreditPage() {
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-slate-600">Product Price</span>
-                    <span className="font-medium text-slate-900">K {calculatorAmount.toLocaleString()}</span>
+                    <span className="font-medium text-slate-900">{formatPrice(Number(calculatorAmount))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">Interest ({selectedPlan.interest})</span>
-                    <span className="font-medium text-slate-900">K {totalInterest.toLocaleString()}</span>
+                    <span className="font-medium text-slate-900">{formatPrice(Number(totalInterest))}</span>
                   </div>                  <div className="flex justify-between">
                     <span className="text-slate-600">Total Amount</span>
-                    <span className="font-bold text-slate-900">K {totalAmount.toLocaleString()}</span>
+                    <span className="font-bold text-slate-900">{formatPrice(Number(totalAmount))}</span>
                   </div>
                   <hr className="my-3 border-slate-200" />
                   <div className="rounded-lg bg-green-500 p-4 text-white">
                     <p className="text-sm opacity-90">Monthly Payment</p>
-                    <p className="text-2xl font-bold">K {monthlyPayment.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">{formatPrice(Number(monthlyPayment))}</p>
                   </div>
                 </div>
                 
@@ -273,11 +274,11 @@ export default function CreditPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">Min Amount</span>
-                    <span className="font-medium text-slate-900">K {plan.minAmount.toLocaleString()}</span>
+                    <span className="font-medium text-slate-900">{formatPrice(Number(plan.minAmount))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-600">Max Amount</span>
-                    <span className="font-medium text-slate-900">K {plan.maxAmount.toLocaleString()}</span>
+                    <span className="font-medium text-slate-900">{formatPrice(Number(plan.maxAmount))}</span>
                   </div>
                 </div>
                 

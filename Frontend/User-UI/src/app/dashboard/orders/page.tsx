@@ -5,6 +5,7 @@
  import { useRouter } from "next/navigation"
  import { Button } from "@/components/ui/button"
  import { ordersApi } from "@/lib/api"
+ import { formatPrice } from "@/lib/utils"
  import { useAuth } from "@/providers/AuthProvider"
  
  export default function OrdersPage() {
@@ -100,7 +101,7 @@
                        {o.paymentStatus || "—"}
                      </span>
                    </td>
-                   <td className="px-4 py-3 text-sm font-medium text-slate-900">K {(Number(o.total) || 0).toLocaleString()}</td>
+                   <td className="px-4 py-3 text-sm font-medium text-slate-900">{formatPrice(Number(o.total || 0))}</td>
                    <td className="px-4 py-3 text-right">
                      <Link href={`/dashboard/orders/${o.id}`}>
                        <Button variant="ghost" size="sm">View</Button>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/config";
+import { formatPrice } from "@/lib/utils";
 
 type Product = {
   id: string;
@@ -423,7 +424,7 @@ export default function ProductsPage() {
                   <td className="font-mono text-sm">{p.sku}</td>
                   <td>{p.category?.name || "—"}</td>
                   <td>{p.brand?.name || "—"}</td>
-                  <td>K {Number(p.price).toLocaleString()}</td>
+                  <td>{formatPrice(Number(p.price))}</td>
                   <td><span className={`badge ${p.isActive !== false ? "badge-success" : "badge-danger"}`}>{p.isActive !== false ? "Active" : "Inactive"}</span></td>
                   {tab !== "flash" && (
                   <td>

@@ -5,6 +5,7 @@
  import { useRouter } from "next/navigation"
  import { Button } from "@/components/ui/button"
  import { creditApi } from "@/lib/api"
+ import { formatPrice } from "@/lib/utils"
  import { useAuth } from "@/providers/AuthProvider"
  
  export default function InstallmentsPage() {
@@ -79,19 +80,19 @@
                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                  <div>
                    <p className="text-slate-600">Amount</p>
-                   <p className="font-medium text-slate-900">K {(Number(it.amount) || 0).toLocaleString()}</p>
+                   <p className="font-medium text-slate-900">{formatPrice(Number(it.amount || 0))}</p>
                  </div>
                  <div>
                    <p className="text-slate-600">Monthly</p>
-                   <p className="font-medium text-slate-900">K {(Number(it.monthlyPayment) || 0).toLocaleString()}</p>
+                   <p className="font-medium text-slate-900">{formatPrice(Number(it.monthlyPayment || 0))}</p>
                  </div>
                  <div>
                    <p className="text-slate-600">Paid</p>
-                   <p className="font-medium text-slate-900">K {(Number(it.paidAmount) || 0).toLocaleString()}</p>
+                   <p className="font-medium text-slate-900">{formatPrice(Number(it.paidAmount || 0))}</p>
                  </div>
                  <div>
                    <p className="text-slate-600">Remaining</p>
-                   <p className="font-medium text-slate-900">K {(Number(it.remainingAmount) || 0).toLocaleString()}</p>
+                   <p className="font-medium text-slate-900">{formatPrice(Number(it.remainingAmount || 0))}</p>
                  </div>
                </div>
                <div className="mt-4 h-2 w-full rounded-full bg-slate-100">

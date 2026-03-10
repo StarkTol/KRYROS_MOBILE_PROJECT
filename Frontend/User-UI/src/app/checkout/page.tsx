@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   ArrowRight
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 const steps = [
   { id: 1, name: "Information", status: "current" },
@@ -240,7 +241,7 @@ export default function CheckoutPage() {
                         <p className="text-sm text-slate-500">1-2 business days</p>
                       </div>
                     </div>
-                    <span className="font-medium text-slate-900">K 250</span>
+                    <span className="font-medium text-slate-900">{formatPrice(250)}</span>
                   </label>
                 </div>
                 
@@ -321,7 +322,7 @@ export default function CheckoutPage() {
                     Back
                   </Button>
                   <Button className="bg-green-500 hover:bg-green-600">
-                    Pay K {total.toLocaleString()}
+                    Pay {formatPrice(Number(total))}
                   </Button>
                 </div>
               </div>
@@ -346,7 +347,7 @@ export default function CheckoutPage() {
                     <p className="text-sm font-medium text-slate-900">iPhone 15 Pro Max 256GB</p>
                     <p className="text-sm text-slate-500">Qty: 1</p>
                   </div>
-                  <p className="font-medium text-slate-900">K 25,000</p>
+                  <p className="font-medium text-slate-900">{formatPrice(25000)}</p>
                 </div>
                 
                 <div className="flex gap-4">
@@ -361,27 +362,27 @@ export default function CheckoutPage() {
                     <p className="text-sm font-medium text-slate-900">AirPods Pro (2nd Gen)</p>
                     <p className="text-sm text-slate-500">Qty: 2</p>
                   </div>
-                  <p className="font-medium text-slate-900">K 7,000</p>
+                  <p className="font-medium text-slate-900">{formatPrice(7000)}</p>
                 </div>
               </div>
 
               <div className="mt-6 space-y-3 border-t border-slate-200 pt-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Subtotal</span>
-                  <span className="font-medium text-slate-900">K {subtotal.toLocaleString()}</span>
+                  <span className="font-medium text-slate-900">{formatPrice(Number(subtotal))}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Shipping</span>
-                  <span className="font-medium text-green-600">{shipping === 0 ? "Free" : `K ${shipping}`}</span>
+                  <span className="font-medium text-green-600">{shipping === 0 ? "Free" : formatPrice(Number(shipping))}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-slate-600">Tax</span>
-                  <span className="font-medium text-slate-900">K 0</span>
+                  <span className="font-medium text-slate-900">{formatPrice(0)}</span>
                 </div>
                 <hr className="my-3 border-slate-200" />
                 <div className="flex justify-between">
                   <span className="font-semibold text-slate-900">Total</span>
-                  <span className="text-xl font-bold text-slate-900">K {total.toLocaleString()}</span>
+                  <span className="text-xl font-bold text-slate-900">{formatPrice(Number(total))}</span>
                 </div>
               </div>
 

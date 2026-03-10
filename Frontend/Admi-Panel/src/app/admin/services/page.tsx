@@ -21,6 +21,7 @@ import {
   XCircle,
   AlertCircle
 } from "lucide-react";
+import { formatPrice } from "@/lib/utils";
 
 type Service = {
   id: string;
@@ -67,6 +68,9 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState<Partial<Service>>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [todaysBookings, setTodaysBookings] = useState<number>(0);
+  const [activeTechs, setActiveTechs] = useState<number>(0);
+  const [monthRevenue, setMonthRevenue] = useState<number>(0);
 
   const load = async () => {
     setLoading(true);
@@ -92,6 +96,43 @@ export default function ServicesPage() {
   };
 
   useEffect(() => { load(); loadBookings(); }, []);
+
+  useEffect(() => {
+    const todayIso = new Date().toISOString().slice(0,10);
+    const count = bookings.filter(b => {
+      const d = new Date(b.scheduledDate).toISOString().slice(0,10);
+      return d === todayIso && b.status !== "CANCELLED";
+    }).length;
+    setTodaysBookings(count);
+  }, [bookings]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const usersRes = await fetch("/internal/admin/users", { cache: "no-store" });
+        const usersBody = await usersRes.json().catch(() => ({}));
+        const users = Array.isArray(usersBody) ? usersBody : usersBody?.users || usersBody?.data || [];
+        if (active) {
+          const count = users.filter((u: any) => {
+            const role = String(u.role || "").toLowerCase();
+            return u.isActive !== false && (role.includes("tech"));
+          }).length;
+          setActiveTechs(count);
+        }
+      } catch {
+        if (active) setActiveTechs(0);
+      }
+      try {
+        const r = await fetch("/internal/admin/reports/summary?range=month", { cache: "no-store" });
+        const body = await r.json().catch(() => ({}));
+        if (active) setMonthRevenue(Number(body?.stats?.totalRevenue || 0));
+      } catch {
+        if (active) setMonthRevenue(0);
+      }
+    })();
+    return () => { active = false; };
+  }, []);
 
   const filteredServices = services.filter(service => {
     const matchesSearch = service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -267,7 +308,7 @@ export default function ServicesPage() {
                 <div className="flex items-center gap-4 text-sm text-slate-600 mb-4">
                   <span className="flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    {Number(service.price) > 0 ? `K ${Number(service.price).toLocaleString()}` : "Free"}
+                    {Number(service.price) > 0 ? formatPrice(Number(service.price)) : "Free"}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
@@ -415,7 +456,7 @@ export default function ServicesPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Today's Bookings</p>
-            <p className="text-xl font-bold text-slate-900">12</p>
+            <p className="text-xl font-bold text-slate-900">{todaysBookings}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
@@ -424,7 +465,7 @@ export default function ServicesPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Active Technicians</p>
-            <p className="text-xl font-bold text-slate-900">8</p>
+            <p className="text-xl font-bold text-slate-900">{activeTechs}</p>
           </div>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center gap-4">
@@ -433,7 +474,7 @@ export default function ServicesPage() {
           </div>
           <div>
             <p className="text-sm text-slate-500">Revenue (This Month)</p>
-            <p className="text-xl font-bold text-slate-900">K 45,600</p>
+            <p className="text-xl font-bold text-slate-900">{formatPrice(monthRevenue)}</p>
           </div>
         </div>
       </div>

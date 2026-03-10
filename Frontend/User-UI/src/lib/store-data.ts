@@ -51,7 +51,7 @@ export const blogPosts = [
   },
   {
     slug: "best-budget-phones-2026",
-    title: "Best Budget Smartphones Under K 10,000 in Zambia",
+    title: "Best Budget Smartphones Under $ 10,000",
     excerpt: "Our top picks for affordable smartphones that offer great value for money in 2026.",
     category: "Guides",
     date: "Feb 10, 2026",

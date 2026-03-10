@@ -25,7 +25,7 @@ export default function ShippingPage() {
         <section className="rounded-xl bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Shipping Fees</h2>
           <p className="mt-2 text-slate-700">
-            Orders over K 5,000 ship for free. Otherwise, shipping starts from K 150 depending on distance and weight.
+            Orders over $ 5,000 ship for free. Otherwise, shipping starts from $ 150 depending on distance and weight.
           </p>
         </section>
 

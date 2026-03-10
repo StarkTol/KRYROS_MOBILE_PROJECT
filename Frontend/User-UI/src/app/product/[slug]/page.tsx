@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { formatPrice } from '@/lib/utils'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kryrosbackend.onrender.com/api'
 
@@ -29,7 +30,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{p.name || 'Product'}</h1>
           <p className="mt-2 text-slate-600">{p.description || 'Coming soon.'}</p>
-          <div className="mt-4 text-xl font-semibold">K {(p.price ?? 0).toLocaleString()}</div>
+          <div className="mt-4 text-xl font-semibold">{formatPrice(Number(p.price ?? 0))}</div>
         </div>
       </div>
     </div>
