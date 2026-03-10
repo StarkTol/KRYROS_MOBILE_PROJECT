@@ -20,6 +20,9 @@ import {
 } from "lucide-react"
 import { Logo } from "./Logo"
 import { AuthButtons } from "./AuthButtons"
+import { useCart } from "@/providers/CartProvider"
+import { useEffect, useState } from "react"
+import { wishlistApi } from "@/lib/api"
 import { megaMenuCategories } from "@/lib/store-data"
 
 export function TopBar() {
@@ -60,6 +63,8 @@ export function Header() {
   const megaMenuRef = useRef<HTMLDivElement>(null)
   const [accountOpen, setAccountOpen] = useState(false)
   const accountRef = useRef<HTMLDivElement>(null)
+  const { getItemCount } = useCart()
+  const [wishlistCount, setWishlistCount] = useState<number>(0)
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40)
@@ -78,6 +83,15 @@ export function Header() {
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    wishlistApi.getMine().then(res => {
+      if (!active) return
+      setWishlistCount(Array.isArray(res.data) ? res.data.length : 0)
+    }).catch(() => {}).finally(() => {})
+    return () => { active = false }
   }, [])
 
   const suggestions = [
@@ -242,7 +256,7 @@ export function Header() {
             >
               <Heart className="h-5 w-5" />
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white">
-                3
+                {wishlistCount}
               </span>
             </Link>
             <Link
@@ -252,7 +266,7 @@ export function Header() {
             >
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                2
+                {getItemCount()}
               </span>
             </Link>
             <div className="hidden lg:block">

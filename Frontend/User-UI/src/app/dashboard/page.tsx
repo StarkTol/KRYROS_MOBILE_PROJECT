@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Package, 
   CreditCard, 
   Wallet, 
@@ -17,29 +17,17 @@ import {
   ShoppingBag,
   Download
 } from "lucide-react";
-
-const stats = [
-  { label: "Total Orders", value: "12", icon: Package, color: "bg-blue-500" },
-  { label: "Active Installments", value: "2", icon: CreditCard, color: "bg-green-500" },
-  { label: "Wallet Balance", value: "K 1,250", icon: Wallet, color: "bg-purple-500" },
-  { label: "Wishlist Items", value: "8", icon: Heart, color: "bg-red-500" },
-];
-
-const recentOrders = [
-  { id: "ORD-001", date: "2024-01-15", status: "Delivered", total: "K 12,500", items: 2 },
-  { id: "ORD-002", date: "2024-01-10", status: "Processing", total: "K 8,900", items: 1 },
-  { id: "ORD-003", date: "2024-01-05", status: "Shipped", total: "K 4,500", items: 3 },
-];
-
-const activeInstallments = [
-  { id: "INST-001", product: "iPhone 15 Pro Max", monthly: "K 2,500", remaining: "K 10,000", dueDate: "2024-02-01" },
-  { id: "INST-002", product: "MacBook Air M2", monthly: "K 3,200", remaining: "K 19,200", dueDate: "2024-02-05" },
-];
+import { ordersApi, walletApi, creditApi, wishlistApi } from "@/lib/api";
 
 export default function DashboardPage() {
   const { user, isLoading, isAuthenticated } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [wallet, setWallet] = useState<any | null>(null);
+  const [credits, setCredits] = useState<any[]>([]);
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [loadingData, setLoadingData] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -50,6 +38,29 @@ export default function DashboardPage() {
       router.push("/login");
     }
   }, [mounted, isLoading, isAuthenticated, router]);
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      try {
+        const [o, w, c, wl] = await Promise.all([
+          ordersApi.getMyOrders(),
+          walletApi.getBalance(),
+          creditApi.getMyCredits(),
+          wishlistApi.getMine(),
+        ]);
+        if (!active) return;
+        setOrders(Array.isArray(o.data) ? o.data : []);
+        setWallet(w.data || null);
+        setCredits(Array.isArray(c.data) ? c.data : []);
+        setWishlistCount(Array.isArray(wl.data) ? wl.data.length : 0);
+      } finally {
+        if (active) setLoadingData(false);
+      }
+    }
+    if (isAuthenticated) load();
+    return () => { active = false };
+  }, [isAuthenticated]);
 
   if (!mounted || isLoading) {
     return (
@@ -85,19 +96,24 @@ export default function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         {/* Stats Grid */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div key={stat.label} className="rounded-xl bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.color}`}>
-                  <stat.icon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm text-slate-500">{stat.label}</p>
-                  <p className="text-xl font-bold text-slate-900">{stat.value}</p>
+          {[
+            { label: "Total Orders", value: String(orders.length), icon: Package, color: "bg-blue-500" },
+            { label: "Active Installments", value: String(credits.filter((x:any)=> (x.status||'').toLowerCase()==='active').length), icon: CreditCard, color: "bg-green-500" },
+            { label: "Wallet Balance", value: `K ${Number(wallet?.balance || 0).toLocaleString()}`, icon: Wallet, color: "bg-purple-500" },
+            { label: "Wishlist Items", value: String(wishlistCount), icon: Heart, color: "bg-red-500" },
+          ].map((stat) => (
+              <div key={stat.label} className="rounded-xl bg-white p-6 shadow-sm">
+                <div className="flex items-center gap-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${stat.color}`}>
+                    <stat.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-500">{stat.label}</p>
+                    <p className="text-xl font-bold text-slate-900">{loadingData ? "—" : stat.value}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -133,22 +149,22 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {recentOrders.map((order) => (
+                    {(orders.slice(0,3)).map((order:any) => (
                       <tr key={order.id} className="border-b border-slate-100">
                         <td className="py-4">
-                          <span className="font-medium text-slate-900">{order.id}</span>
+                          <span className="font-medium text-slate-900">{order.orderNumber || order.id}</span>
                         </td>
-                        <td className="py-4 text-sm text-slate-600">{order.date}</td>
+                        <td className="py-4 text-sm text-slate-600">{new Date(order.createdAt).toLocaleDateString()}</td>
                         <td className="py-4">
                           <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                            order.status === "Delivered" ? "bg-green-100 text-green-700" :
-                            order.status === "Shipped" ? "bg-blue-100 text-blue-700" :
+                            (order.status || '').toLowerCase() === "delivered" ? "bg-green-100 text-green-700" :
+                            (order.status || '').toLowerCase() === "shipped" ? "bg-blue-100 text-blue-700" :
                             "bg-yellow-100 text-yellow-700"
                           }`}>
-                            {order.status}
+                            {order.status || "—"}
                           </span>
                         </td>
-                        <td className="py-4 text-sm font-medium text-slate-900">{order.total}</td>
+                        <td className="py-4 text-sm font-medium text-slate-900">K {Number(order.total || 0).toLocaleString()}</td>
                         <td className="py-4 text-right">
                           <Link href={`/dashboard/orders/${order.id}`}>
                             <Button variant="ghost" size="sm">
@@ -172,7 +188,7 @@ export default function DashboardPage() {
                 </Link>
               </div>
               <div className="space-y-4">
-                {activeInstallments.map((installment) => (
+                {credits.slice(0,3).map((inst:any) => (
                   <div key={installment.id} className="rounded-lg border border-slate-200 p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -180,13 +196,13 @@ export default function DashboardPage() {
                           <CreditCard className="h-5 w-5 text-green-600" />
                         </div>
                         <div>
-                          <p className="font-medium text-slate-900">{installment.product}</p>
-                          <p className="text-sm text-slate-500">Due: {installment.dueDate}</p>
+                          <p className="font-medium text-slate-900">{inst.product?.name || "Product"}</p>
+                          <p className="text-sm text-slate-500">Due: {inst.nextPaymentDate ? new Date(inst.nextPaymentDate).toLocaleDateString() : "—"}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-slate-500">Monthly: {installment.monthly}</p>
-                        <p className="font-medium text-slate-900">Remaining: {installment.remaining}</p>
+                        <p className="text-sm text-slate-500">Monthly: K {Number(inst.monthlyPayment || 0).toLocaleString()}</p>
+                        <p className="font-medium text-slate-900">Remaining: K {Number(inst.remainingAmount || 0).toLocaleString()}</p>
                       </div>
                     </div>
                     <div className="mt-3 h-2 w-full rounded-full bg-slate-100">

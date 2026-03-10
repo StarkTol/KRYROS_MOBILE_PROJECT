@@ -128,6 +128,20 @@ export const cmsApi = {
   getSections: () => fetchApi<any[]>('/cms/sections'),
 };
 
+// Wishlist API
+export const wishlistApi = {
+  getMine: () => fetchApi<any[]>('/wishlist'),
+  add: (productId: string) =>
+    fetchApi<any>('/wishlist', {
+      method: 'POST',
+      body: JSON.stringify({ productId }),
+    }),
+  remove: (productId: string) =>
+    fetchApi<any>(`/wishlist/${productId}`, {
+      method: 'DELETE',
+    }),
+};
+
 // Wholesale API
 export const wholesaleApi = {
   getAccount: (userId: string) => fetchApi<any>(`/wholesale/${userId}`),

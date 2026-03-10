@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -10,58 +10,25 @@ import {
   ShoppingBag, 
   X
 } from "lucide-react";
-
-interface WishlistItem {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  brand: string;
-  inStock: boolean;
-}
-
-const initialWishlist: WishlistItem[] = [
-  {
-    id: "1",
-    name: "iPhone 15 Pro Max 256GB",
-    price: 25000,
-    originalPrice: 28000,
-    image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop",
-    brand: "Apple",
-    inStock: true
-  },
-  {
-    id: "2",
-    name: "Samsung Galaxy S24 Ultra",
-    price: 22000,
-    image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=400&h=400&fit=crop",
-    brand: "Samsung",
-    inStock: true
-  },
-  {
-    id: "3",
-    name: "MacBook Pro 16-inch M3",
-    price: 45000,
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400&h=400&fit=crop",
-    brand: "Apple",
-    inStock: false
-  }
-];
+import { wishlistApi, productsApi } from "@/lib/api";
+import { useCart } from "@/providers/CartProvider";
+import type { Product } from "@/types";
 
 export default function WishlistPage() {
-  const [wishlist, setWishlist] = useState<WishlistItem[]>(initialWishlist);
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addItem } = useCart();
 
-  const removeItem = (id: string) => {
-    setWishlist(prev => prev.filter(item => item.id !== id));
-  };
+  useEffect(() => {
+    let active = true;
+    wishlistApi.getMine().then(res => {
+      if (!active) return;
+      setItems(Array.isArray(res.data) ? res.data : []);
+    }).finally(() => active && setLoading(false));
+    return () => { active = false };
+  }, []);
 
-  const addToCart = (item: WishlistItem) => {
-    // In a real app, this would add to cart
-    console.log("Added to cart:", item);
-  };
-
-  if (wishlist.length === 0) {
+  if (!loading && items.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 py-16">
@@ -86,18 +53,21 @@ export default function WishlistPage() {
       <div className="bg-slate-900 py-12">
         <div className="mx-auto max-w-7xl px-4">
           <h1 className="text-3xl font-bold text-white">My Wishlist</h1>
-          <p className="mt-2 text-slate-400">{wishlist.length} items saved</p>
+          <p className="mt-2 text-slate-400">{items.length} items saved</p>
         </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="rounded-xl bg-white shadow-sm">
-          {wishlist.map((item) => (
-            <div key={item.id} className="flex gap-6 border-b border-slate-200 p-6 last:border-b-0">
+          {items.map((it) => {
+            const p: Product | undefined = it.product;
+            const primary = p?.images?.find((img:any) => img.isPrimary)?.url || p?.images?.[0]?.url || "";
+            return (
+            <div key={it.productId} className="flex gap-6 border-b border-slate-200 p-6 last:border-b-0">
               <div className="relative h-40 w-40 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                 <Image
-                  src={item.image}
-                  alt={item.name}
+                  src={primary || "/placeholder.png"}
+                  alt={p?.name || "Product"}
                   fill
                   className="object-cover"
                 />
@@ -105,40 +75,44 @@ export default function WishlistPage() {
               
               <div className="flex flex-1 flex-col justify-between">
                 <div>
-                  <p className="text-sm text-slate-500">{item.brand}</p>
-                  <Link href={`/product/${item.id}`} className="text-lg font-medium text-slate-900 hover:text-green-500">
-                    {item.name}
+                  <p className="text-sm text-slate-500">{p?.brand?.name || ""}</p>
+                  <Link href={`/product/${p?.id}`} className="text-lg font-medium text-slate-900 hover:text-green-500">
+                    {p?.name || "Product"}
                   </Link>
                   <div className="mt-2 flex items-center gap-2">
-                    <span className="text-xl font-bold text-slate-900">K {item.price.toLocaleString()}</span>
-                    {item.originalPrice && (
+                    <span className="text-xl font-bold text-slate-900">K {Number(p?.salePrice ?? p?.price ?? 0).toLocaleString()}</span>
+                    {p?.salePrice && p?.price && (
                       <>
                         <span className="text-sm text-slate-500 line-through">
-                          K {item.originalPrice.toLocaleString()}
+                          K {Number(p.price).toLocaleString()}
                         </span>
                         <span className="rounded bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-600">
-                          {Math.round(((item.originalPrice - item.price) / item.originalPrice) * 100)}% OFF
+                          {Math.round(((Number(p.price) - Number(p.salePrice)) / Number(p.price)) * 100)}% OFF
                         </span>
                       </>
                     )}
                   </div>
-                  <p className={`mt-2 text-sm ${item.inStock ? "text-green-600" : "text-red-500"}`}>
-                    {item.inStock ? "In Stock" : "Out of Stock"}
+                  <p className="mt-2 text-sm text-green-600">
+                    In Stock
                   </p>
                 </div>
                 
                 <div className="flex gap-3">
                   <Button 
                     className="bg-green-500 hover:bg-green-600"
-                    disabled={!item.inStock}
-                    onClick={() => addToCart(item)}
+                    onClick={() => {
+                      if (p) addItem(p);
+                    }}
                   >
                     <ShoppingBag className="mr-2 h-4 w-4" />
                     Add to Cart
                   </Button>
                   <Button 
                     variant="outline"
-                    onClick={() => removeItem(item.id)}
+                    onClick={async () => {
+                      await wishlistApi.remove(it.productId);
+                      setItems(prev => prev.filter(x => x.productId !== it.productId));
+                    }}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Remove
@@ -146,7 +120,7 @@ export default function WishlistPage() {
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         <div className="mt-8 flex justify-between">

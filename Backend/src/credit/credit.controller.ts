@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CreditService } from './credit.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('Credit')
 @Controller('credit')
@@ -27,6 +28,15 @@ export class CreditController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user credit accounts' })
   getAccounts(@Param('userId') userId: string) {
+    return this.creditService.getAccounts(userId);
+  }
+
+  @Get('my-credits')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user credit accounts' })
+  getMyCredits(@Req() req: Request) {
+    const userId = (req as any).user.id;
     return this.creditService.getAccounts(userId);
   }
 

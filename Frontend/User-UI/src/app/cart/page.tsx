@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -15,66 +15,19 @@ import {
   Truck,
   CreditCard
 } from "lucide-react";
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  originalPrice?: number;
-  image: string;
-  quantity: number;
-  variant?: string;
-}
-
-const initialCart: CartItem[] = [
-  {
-    id: "1",
-    name: "iPhone 15 Pro Max 256GB",
-    price: 25000,
-    originalPrice: 28000,
-    image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=400&fit=crop",
-    quantity: 1,
-    variant: "Natural Titanium"
-  },
-  {
-    id: "2",
-    name: "AirPods Pro (2nd Generation)",
-    price: 3500,
-    image: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400&h=400&fit=crop",
-    quantity: 2,
-    variant: "White"
-  }
-];
+import { useCart } from "@/providers/CartProvider";
+import type { CartItem as CIC } from "@/types";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<CartItem[]>(initialCart);
+  const { items, updateQuantity, removeItem, getSubtotal } = useCart();
   const [couponCode, setCouponCode] = useState("");
 
-  const updateQuantity = (id: string, delta: number) => {
-    setCart(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
-      }
-      return item;
-    }));
-  };
-
-  const removeItem = (id: string) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
-
-  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const discount = cart.reduce((sum, item) => {
-    if (item.originalPrice) {
-      return sum + ((item.originalPrice - item.price) * item.quantity);
-    }
-    return sum;
-  }, 0);
+  const subtotal = useMemo(() => getSubtotal(), [getSubtotal, items]);
+  const discount = 0;
   const shipping = subtotal > 5000 ? 0 : 150;
   const total = subtotal - discount + shipping;
 
-  if (cart.length === 0) {
+  if (items.length === 0) {
     return (
       <div className="min-h-screen bg-slate-50">
         <div className="mx-auto max-w-7xl px-4 py-16">
@@ -99,7 +52,7 @@ export default function CartPage() {
       <div className="bg-slate-900 py-12">
         <div className="mx-auto max-w-7xl px-4">
           <h1 className="text-3xl font-bold text-white">Shopping Cart</h1>
-          <p className="mt-2 text-slate-400">{cart.length} items in your cart</p>
+          <p className="mt-2 text-slate-400">{items.length} items in your cart</p>
         </div>
       </div>
 
@@ -108,12 +61,16 @@ export default function CartPage() {
           {/* Cart Items */}
           <div className="lg:col-span-2">
             <div className="rounded-xl bg-white shadow-sm">
-              {cart.map((item) => (
-                <div key={item.id} className="flex gap-4 border-b border-slate-200 p-6 last:border-b-0">
+              {items.map((ci: CIC) => {
+                const itemId = ci.product.id + (ci.variant?.id ? `:${ci.variant.id}` : "");
+                const primary = ci.product.images?.find((i) => i.isPrimary)?.url || ci.product.images?.[0]?.url || "";
+                const unitPrice = ci.variant?.price || ci.product.salePrice || ci.product.price;
+                return (
+                <div key={itemId} className="flex gap-4 border-b border-slate-200 p-6 last:border-b-0">
                   <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-lg bg-slate-100">
                     <Image
-                      src={item.image}
-                      alt={item.name}
+                      src={primary || "/placeholder.png"}
+                      alt={ci.product.name}
                       fill
                       className="object-cover"
                     />
@@ -121,25 +78,25 @@ export default function CartPage() {
                   
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <Link href={`/product/${item.id}`} className="font-medium text-slate-900 hover:text-green-500">
-                        {item.name}
+                      <Link href={`/product/${ci.product.id}`} className="font-medium text-slate-900 hover:text-green-500">
+                        {ci.product.name}
                       </Link>
-                      {item.variant && (
-                        <p className="mt-1 text-sm text-slate-500">Variant: {item.variant}</p>
+                      {ci.variant && (
+                        <p className="mt-1 text-sm text-slate-500">Variant: {ci.variant.value}</p>
                       )}
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <button
-                          onClick={() => updateQuantity(item.id, -1)}
+                          onClick={() => updateQuantity(ci.product.id, ci.variant?.id, ci.quantity - 1)}
                           className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-50"
                         >
                           <Minus className="h-3 w-3" />
                         </button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <span className="w-8 text-center font-medium">{ci.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, 1)}
+                          onClick={() => updateQuantity(ci.product.id, ci.variant?.id, ci.quantity + 1)}
                           className="flex h-8 w-8 items-center justify-center rounded border border-slate-200 text-slate-600 hover:bg-slate-50"
                         >
                           <Plus className="h-3 w-3" />
@@ -147,24 +104,19 @@ export default function CartPage() {
                       </div>
                       
                       <div className="text-right">
-                        <p className="font-bold text-slate-900">K {(item.price * item.quantity).toLocaleString()}</p>
-                        {item.originalPrice && (
-                          <p className="text-sm text-slate-500 line-through">
-                            K {(item.originalPrice * item.quantity).toLocaleString()}
-                          </p>
-                        )}
+                        <p className="font-bold text-slate-900">K {(unitPrice * ci.quantity).toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
                   
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(ci.product.id, ci.variant?.id)}
                     className="self-start rounded p-2 text-slate-400 hover:bg-red-50 hover:text-red-500"
                   >
                     <Trash2 className="h-5 w-5" />
                   </button>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
 

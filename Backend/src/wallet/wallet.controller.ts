@@ -1,7 +1,8 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('Wallet')
 @Controller('wallet')
@@ -26,6 +27,21 @@ export class WalletController {
   @ApiOperation({ summary: 'Get user wallet' })
   getWallet(@Param('userId') userId: string) {
     return this.walletService.getWallet(userId);
+  }
+
+  @Get('balance')
+  @ApiOperation({ summary: 'Get current user wallet balance' })
+  getMyBalance(@Req() req: Request) {
+    const userId = (req as any).user.id;
+    return this.walletService.getWallet(userId);
+  }
+
+  @Get('transactions')
+  @ApiOperation({ summary: 'Get current user wallet transactions' })
+  async getMyTransactions(@Req() req: Request) {
+    const userId = (req as any).user.id;
+    const wallet = await this.walletService.getWallet(userId);
+    return this.walletService.getTransactions(wallet.id);
   }
 
   @Get(':walletId/transactions')

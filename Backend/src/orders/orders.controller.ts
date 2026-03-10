@@ -2,6 +2,8 @@ import { Controller, Get, Post, Put, Body, Param, Query, UseGuards } from '@nest
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Request } from 'express';
+import { Req } from '@nestjs/common';
 
 @ApiTags('Orders')
 @Controller('orders')
@@ -13,6 +15,15 @@ export class OrdersController {
   @ApiBearerAuth()
   findAll(@Query('status') status?: string, @Query('skip') skip?: number, @Query('take') take?: number) {
     return this.ordersService.findAll(undefined, { status, skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
+  }
+
+  @Get('my-orders')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user orders' })
+  async myOrders(@Req() req: Request) {
+    const result = await this.ordersService.findAll((req as any).user.id, { take: 20, skip: 0 });
+    return result.data;
   }
 
   @Get(':id')

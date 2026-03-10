@@ -38,7 +38,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
-    setIsLoading(false);
+    const bootstrap = async () => {
+      if (storedToken) {
+        const me = await authApi.getMe();
+        if (me?.data) {
+          setUser(me.data);
+          localStorage.setItem('user', JSON.stringify(me.data));
+        }
+      }
+      setIsLoading(false);
+    };
+    bootstrap();
   }, []);
 
   const login = async (email: string, password: string) => {
