@@ -123,6 +123,31 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
                 <ShoppingCart className="mr-1 h-4 w-4" />
                 Add
               </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={async () => {
+                  const id = product?.id;
+                  if (!id) return;
+                  if (!isAuthenticated) {
+                    router.push("/login");
+                    return;
+                  }
+                  if (isWishlisted) {
+                    await wishlistApi.remove(id);
+                    setIsWishlisted(false);
+                  } else {
+                    await wishlistApi.add(id);
+                    setIsWishlisted(true);
+                  }
+                  if (typeof window !== "undefined") {
+                    window.dispatchEvent(new Event("wishlist:changed"));
+                  }
+                }}
+              >
+                <Heart className={`mr-1 h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+                {isWishlisted ? "Wishlisted" : "Wishlist"}
+              </Button>
               <Button size="sm" className="bg-green-500 hover:bg-green-600">
                 Buy Now
               </Button>
@@ -229,13 +254,38 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
           <span className="text-xs text-slate-500">({displayReviews})</span>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3 flex items-center justify-between gap-2">
           <span className="text-lg font-bold text-slate-900">K {product?.price?.toLocaleString() || 0}</span>
           {product?.originalPrice && (
             <span className="text-sm text-slate-500 line-through">
               K {product.originalPrice.toLocaleString()}
             </span>
           )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={async () => {
+              const id = product?.id;
+              if (!id) return;
+              if (!isAuthenticated) {
+                router.push("/login");
+                return;
+              }
+              if (isWishlisted) {
+                await wishlistApi.remove(id);
+                setIsWishlisted(false);
+              } else {
+                await wishlistApi.add(id);
+                setIsWishlisted(true);
+              }
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("wishlist:changed"));
+              }
+            }}
+          >
+            <Heart className={`mr-1 h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+            {isWishlisted ? "Wishlisted" : "Wishlist"}
+          </Button>
         </div>
 
         {product?.allowCredit && (
