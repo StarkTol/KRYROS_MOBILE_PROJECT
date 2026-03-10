@@ -653,39 +653,182 @@ export default function CMSPage() {
           </div>
           <div className="space-y-3">
             {sections.filter((s:any) => s.type === "wholesale_deals").map((s:any) => (
-              <div key={s.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <p className="font-medium">{s.title || "Wholesale Deals"}</p>
-                  <p className="text-sm text-slate-500">Items: {Array.isArray(s.config?.items) ? s.config.items.length : 0}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <label className="text-sm flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      defaultChecked={s.isActive}
-                      onChange={async (e) => {
-                        await fetch(`/internal/admin/cms/sections/${s.id}`, {
-                          method: "PUT",
-                          credentials: "same-origin",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ isActive: e.target.checked }),
-                        });
-                        await loadSections();
+              <div key={s.id} className="space-y-4 p-4 border rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">{s.title || "Wholesale Deals"}</p>
+                    <p className="text-sm text-slate-500">Items: {Array.isArray(s.config?.items) ? s.config.items.length : 0}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-sm flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        defaultChecked={s.isActive}
+                        onChange={async (e) => {
+                          await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                            method: "PUT",
+                            credentials: "same-origin",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ isActive: e.target.checked }),
+                          });
+                          await loadSections();
+                        }}
+                      />
+                      Active
+                    </label>
+                    <button
+                      onClick={async () => {
+                        const ok = confirm("Delete this section?");
+                        if (!ok) return;
+                        const res = await fetch(`/internal/admin/cms/sections/${s.id}`, { method: "DELETE", credentials: "same-origin" });
+                        if (res.ok) await loadSections();
                       }}
-                    />
-                    Active
-                  </label>
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 rounded-lg p-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <input placeholder="Title" className="admin-input" id={`w-title-${s.id}`} />
+                    <input placeholder="Subtitle" className="admin-input" id={`w-subtitle-${s.id}`} />
+                    <input placeholder="Product slug (optional)" className="admin-input" id={`w-slug-${s.id}`} />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                    <input type="number" min="1" step="1" placeholder="Min quantity" className="admin-input" id={`w-minqty-${s.id}`} />
+                    <input type="number" min="0" step="0.01" placeholder="Wholesale price" className="admin-input" id={`w-price-${s.id}`} />
+                    <input type="file" accept="image/*" id={`w-image-${s.id}`} />
+                  </div>
                   <button
                     onClick={async () => {
-                      const ok = confirm("Delete this section?");
-                      if (!ok) return;
-                      const res = await fetch(`/internal/admin/cms/sections/${s.id}`, { method: "DELETE", credentials: "same-origin" });
-                      if (res.ok) await loadSections();
+                      const title = (document.getElementById(`w-title-${s.id}`) as HTMLInputElement).value.trim();
+                      const subtitle = (document.getElementById(`w-subtitle-${s.id}`) as HTMLInputElement).value.trim();
+                      const slug = (document.getElementById(`w-slug-${s.id}`) as HTMLInputElement).value.trim();
+                      const minQtyStr = (document.getElementById(`w-minqty-${s.id}`) as HTMLInputElement).value.trim();
+                      const priceStr = (document.getElementById(`w-price-${s.id}`) as HTMLInputElement).value.trim();
+                      const fileInput = document.getElementById(`w-image-${s.id}`) as HTMLInputElement;
+                      if (!title || !minQtyStr || !priceStr) {
+                        alert("Please provide title, min quantity and price");
+                        return;
+                      }
+                      const minQty = Math.max(1, Number(minQtyStr));
+                      const price = Number(priceStr);
+                      let image = "";
+                      const file = (fileInput.files || [])[0];
+                      if (file) {
+                        image = await compressImage(file, 800, 0.9);
+                      }
+                      const items = Array.isArray(s.config?.items) ? [...s.config.items] : [];
+                      items.push({ title, subtitle, minQty, price, slug, image });
+                      const res = await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                        method: "PUT",
+                        credentials: "same-origin",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ config: { items } }),
+                      });
+                      if (res.ok) {
+                        (document.getElementById(`w-title-${s.id}`) as HTMLInputElement).value = "";
+                        (document.getElementById(`w-subtitle-${s.id}`) as HTMLInputElement).value = "";
+                        (document.getElementById(`w-slug-${s.id}`) as HTMLInputElement).value = "";
+                        (document.getElementById(`w-minqty-${s.id}`) as HTMLInputElement).value = "";
+                        (document.getElementById(`w-price-${s.id}`) as HTMLInputElement).value = "";
+                        if (fileInput) fileInput.value = "";
+                        await loadSections();
+                      } else {
+                        const t = await res.text();
+                        alert(t || "Failed to add wholesale deal");
+                      }
                     }}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                    className="btn-primary"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    Add Wholesale Deal
                   </button>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="text-left text-sm text-slate-600">
+                        <th className="p-2">Image</th>
+                        <th className="p-2">Title</th>
+                        <th className="p-2">Subtitle</th>
+                        <th className="p-2">Slug</th>
+                        <th className="p-2">Min Qty</th>
+                        <th className="p-2">Price</th>
+                        <th className="p-2 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(Array.isArray(s.config?.items) ? s.config.items : []).map((it:any, idx:number) => (
+                        <tr key={idx} className="border-t">
+                          <td className="p-2">
+                            <div className="h-12 w-20 rounded bg-slate-200 overflow-hidden">
+                              {it.image ? <img src={it.image} alt={it.title} className="h-12 w-20 object-cover" /> : null}
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <input defaultValue={it.title} className="admin-input" id={`wd-title-${s.id}-${idx}`} />
+                          </td>
+                          <td className="p-2">
+                            <input defaultValue={it.subtitle || ""} className="admin-input" id={`wd-subtitle-${s.id}-${idx}`} />
+                          </td>
+                          <td className="p-2">
+                            <input defaultValue={it.slug || ""} className="admin-input" id={`wd-slug-${s.id}-${idx}`} />
+                          </td>
+                          <td className="p-2 w-24">
+                            <input type="number" min="1" defaultValue={it.minQty || 1} className="admin-input" id={`wd-min-${s.id}-${idx}`} />
+                          </td>
+                          <td className="p-2 w-32">
+                            <input type="number" min="0" step="0.01" defaultValue={it.price || 0} className="admin-input" id={`wd-price-${s.id}-${idx}`} />
+                          </td>
+                          <td className="p-2 text-right">
+                            <button
+                              onClick={async () => {
+                                const items = Array.isArray(s.config?.items) ? [...s.config.items] : [];
+                                items.splice(idx, 1);
+                                const res = await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                                  method: "PUT",
+                                  credentials: "same-origin",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ config: { items } }),
+                                });
+                                if (res.ok) await loadSections();
+                              }}
+                              className="btn-danger"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={async () => {
+                                const items = Array.isArray(s.config?.items) ? [...s.config.items] : [];
+                                const updated = {
+                                  ...items[idx],
+                                  title: (document.getElementById(`wd-title-${s.id}-${idx}`) as HTMLInputElement).value,
+                                  subtitle: (document.getElementById(`wd-subtitle-${s.id}-${idx}`) as HTMLInputElement).value,
+                                  slug: (document.getElementById(`wd-slug-${s.id}-${idx}`) as HTMLInputElement).value,
+                                  minQty: Number((document.getElementById(`wd-min-${s.id}-${idx}`) as HTMLInputElement).value),
+                                  price: Number((document.getElementById(`wd-price-${s.id}-${idx}`) as HTMLInputElement).value),
+                                };
+                                items[idx] = updated;
+                                const res = await fetch(`/internal/admin/cms/sections/${s.id}`, {
+                                  method: "PUT",
+                                  credentials: "same-origin",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ config: { items } }),
+                                });
+                                if (res.ok) await loadSections();
+                              }}
+                              className="btn-secondary ml-2"
+                            >
+                              Save
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             ))}
