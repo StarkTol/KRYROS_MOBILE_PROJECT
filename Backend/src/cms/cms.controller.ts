@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, UseInterceptors, CacheInterceptor } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CMSService } from './cms.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
@@ -13,6 +13,7 @@ export class CMSController {
   constructor(private cmsService: CMSService) {}
 
   @Get('banners')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get active banners' })
   getBanners() {
     return this.cmsService.getBanners();
@@ -51,6 +52,7 @@ export class CMSController {
   }
 
   @Get('sections')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get active homepage sections' })
   getSections() {
     return this.cmsService.getSections();

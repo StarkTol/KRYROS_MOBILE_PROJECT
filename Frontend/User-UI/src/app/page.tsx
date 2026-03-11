@@ -40,38 +40,28 @@ const staggerContainer = {
 }
 
 // Hero Slider Component
-function HeroSlider() {
+function HeroSlider({ banners, loading = false }: { banners: any[], loading?: boolean }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [heroBanners, setHeroBanners] = useState<any[]>([])
 
   useEffect(() => {
-    let isMounted = true
-    cmsApi.getBanners()
-      .then((res) => {
-        if (isMounted && res.data && Array.isArray(res.data)) {
-          const mapped = res.data
-            .filter((b: any) => b?.isActive)
-            .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
-            .map((b: any) => ({
-              id: b.id,
-              title: b.title,
-              subtitle: b.subtitle || '',
-              image: b.image,
-              link: b.link || '/shop',
-              linkText: b.linkText || 'Shop Now',
-              isActive: b.isActive,
-              position: b.position || 0,
-            }))
-          setHeroBanners(mapped)
-        }
-      })
-      .catch(() => {
-        setHeroBanners([])
-      })
-    return () => {
-      isMounted = false
+    if (banners && Array.isArray(banners) && banners.length > 0) {
+      const mapped = banners
+        .filter((b: any) => b?.isActive)
+        .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))
+        .map((b: any) => ({
+          id: b.id,
+          title: b.title,
+          subtitle: b.subtitle || '',
+          image: b.image,
+          link: b.link || '/shop',
+          linkText: b.linkText || 'Shop Now',
+          isActive: b.isActive,
+          position: b.position || 0,
+        }))
+      setHeroBanners(mapped)
     }
-  }, [])
+  }, [banners])
 
   useEffect(() => {
     if (!heroBanners.length) return
@@ -81,7 +71,7 @@ function HeroSlider() {
     return () => clearInterval(timer)
   }, [heroBanners.length])
 
-  if (!heroBanners.length) {
+  if (loading || !heroBanners.length) {
     return (
       <div className="relative h-[500px] md:h-[600px] overflow-hidden bg-slate-900 flex items-center justify-center">
         <div className="container-custom">
@@ -251,36 +241,15 @@ function WholesaleCreditHighlights() {
   )
 }
 
-function CategoriesGridSection() {
-  const [categories, setCategories] = useState<any[]>([])
+function CategoriesGridSection({ categories, sections, loading: externalLoading = false }: { categories: any[], sections: any[], loading?: boolean }) {
   const [cmsConfig, setCmsConfig] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let active = true
-    // Fetch CMS sections to see which categories are selected
-    const p1 = cmsApi.getSections().then(res => {
-      if (!active) return
-      const arr = Array.isArray(res.data) ? res.data : (res as any)?.data || []
-      const sect = arr.find((s:any) => s.type === 'categories' && s.isActive)
+    if (sections && Array.isArray(sections)) {
+      const sect = sections.find((s:any) => s.type === 'categories' && s.isActive)
       if (sect) setCmsConfig(sect)
-    })
-
-    // Also fetch real counts from categories API
-    const p2 = categoriesApi.getAll()
-      .then(res => {
-        if (!active) return
-        const list = Array.isArray(res.data) ? res.data : []
-        setCategories(list)
-      })
-      .catch(() => setCategories([]))
-
-    Promise.all([p1, p2]).finally(() => {
-      if (active) setLoading(false)
-    })
-
-    return () => { active = false }
-  }, [])
+    }
+  }, [sections])
 
   // If we have CMS config, use those categories. Otherwise fallback to top categories
   const displayCategories = useMemo(() => {
@@ -309,7 +278,7 @@ function CategoriesGridSection() {
     return Tag
   }
 
-  if (!loading && !displayCategories.length) return null
+  if (externalLoading || !displayCategories.length) return null
 
   return (
     <section className="section-padding bg-slate-50">
@@ -319,7 +288,7 @@ function CategoriesGridSection() {
           <p className="text-slate-600">{cmsConfig?.subtitle || "Browse our wide range of tech products"}</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {loading ? (
+          {externalLoading ? (
             [...Array(4)].map((_, i) => (
               <div key={i} className="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-200 animate-pulse">
                 <div className="mx-auto mb-3 h-12 w-12 rounded-xl bg-slate-100" />
@@ -351,27 +320,22 @@ function CategoriesGridSection() {
 }
 
 // Flash Sales Component
-function FlashSales() {
-  const [flash, setFlash] = useState<any[]>([])
+function FlashSales({ products, loading = false }: { products: any[], loading?: boolean }) {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    let active = true
-    productsApi.getFlashSales().then(res => {
-      if (active && Array.isArray(res.data)) setFlash(res.data)
-    })
     setIsMounted(true)
     const timer = setInterval(() => {
-      if (flash.length && flash[0].flashSaleEnd) {
-        setTimeLeft(getTimeRemaining(flash[0].flashSaleEnd))
+      if (products.length && products[0].flashSaleEnd) {
+        setTimeLeft(getTimeRemaining(products[0].flashSaleEnd))
       }
     }, 1000)
-    return () => { active = false; clearInterval(timer) }
-  }, [])
+    return () => clearInterval(timer)
+  }, [products])
 
-  if (!flash.length) return null
-  const flashProducts = flash
+  if (loading || !products.length) return null
+  const flashProducts = products
 
   return (
     <section className="section-padding bg-gradient-to-br from-orange-50 to-red-50">
@@ -541,22 +505,9 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 // Featured Products Section
-function FeaturedProducts() {
-  const [featuredProducts, setFeatured] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let active = true
-    productsApi.getFeatured().then(res => {
-      if (active && Array.isArray(res.data)) {
-        setFeatured(res.data.slice(0, 8))
-      }
-      setLoading(false)
-    })
-    return () => { active = false }
-  }, [])
-
-  if (!loading && !featuredProducts.length) return null
+function FeaturedProducts({ products, loading = false }: { products: any[], loading?: boolean }) {
+  if (loading || !products.length) return null
+  const featuredProducts = products
 
   return (
     <section className="section-padding bg-gray-50">
@@ -650,25 +601,19 @@ function ServicesSection() {
 }
 
 // Testimonials Section
-function TestimonialsSection() {
+function TestimonialsSection({ sections }: { sections: any[] }) {
   const [items, setItems] = useState<any[]>([])
   const [title, setTitle] = useState<string>("What Our Customers Say")
+  
   useEffect(() => {
-    let active = true
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://kryrosbackend.onrender.com/api'}/cms/sections`, { cache: 'no-store' })
-      .then(r => r.json())
-      .then(d => {
-        if (!active) return
-        const arr = Array.isArray(d) ? d : d?.data || []
-        const sect = arr.find((s:any) => s.type === 'testimonials' && s.isActive)
-        if (sect && Array.isArray(sect.config?.items)) {
-          setItems(sect.config.items)
-          if (sect.title) setTitle(sect.title)
-        }
-      })
-      .catch(() => setItems([]))
-    return () => { active = false }
-  }, [])
+    if (sections && Array.isArray(sections)) {
+      const sect = sections.find((s:any) => s.type === 'testimonials' && s.isActive)
+      if (sect && Array.isArray(sect.config?.items)) {
+        setItems(sect.config.items)
+        if (sect.title) setTitle(sect.title)
+      }
+    }
+  }, [sections])
   if (!items.length) return null
   return (
     <section className="section-padding">
@@ -748,18 +693,71 @@ function NewsletterSection() {
   )
 }
 
-// Main Page Component
+// Types for the homepage
+interface HomePageData {
+  banners: any[];
+  featured: any[];
+  flashSales: any[];
+  categories: any[];
+  sections: any[];
+}
+
+// Separate components for better performance and clear server/client boundaries
+async function getHomePageData(): Promise<HomePageData> {
+  const [banners, featured, flashSales, categories, sections] = await Promise.all([
+    cmsApi.getBanners(),
+    productsApi.getFeatured(),
+    productsApi.getFlashSales(),
+    categoriesApi.getAll(),
+    cmsApi.getSections(),
+  ]);
+
+  return {
+    banners: banners.data || [],
+    featured: featured.data || [],
+    flashSales: flashSales.data || [],
+    categories: categories.data || [],
+    sections: sections.data || [],
+  };
+}
+
 export default function HomePage() {
+  const [data, setData] = useState<HomePageData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getHomePageData().then((res) => {
+      setData(res);
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="pt-0">
+        <HeroSlider banners={[]} loading={true} />
+        <div className="container-custom py-12 space-y-12">
+          <div className="h-64 w-full bg-slate-100 animate-pulse rounded-2xl" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-80 bg-slate-100 animate-pulse rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-0">
-      <HeroSlider />
-      <FlashSales />
-      <CategoriesGridSection />
-      <FeaturedProducts />
+      <HeroSlider banners={data?.banners || []} />
+      <FlashSales products={data?.flashSales || []} />
+      <CategoriesGridSection categories={data?.categories || []} sections={data?.sections || []} />
+      <FeaturedProducts products={data?.featured || []} />
       <WholesaleCreditHighlights />
       <CreditSection />
       <ServicesSection />
-      <TestimonialsSection />
+      <TestimonialsSection sections={data?.sections || []} />
       <BlogSection />
       <NewsletterSection />
     </div>

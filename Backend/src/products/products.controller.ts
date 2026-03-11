@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UseInterceptors, UploadedFiles, CacheInterceptor } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -14,6 +14,7 @@ export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get all products' })
   findAll(
     @Query('skip') skip?: number,
@@ -32,12 +33,14 @@ export class ProductsController {
   }
 
   @Get('featured')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get featured products' })
   getFeatured(@Query('take') take?: number) {
     return this.productsService.getFeaturedProducts(take ? Number(take) : undefined);
   }
 
   @Get('flash-sales')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get flash sale products' })
   getFlashSales() {
     return this.productsService.getFlashSaleProducts();
