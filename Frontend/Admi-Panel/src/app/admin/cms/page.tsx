@@ -16,7 +16,8 @@ import {
   Megaphone,
   Sparkles,
   Star,
-  MessageSquare
+  MessageSquare,
+  X
 } from "lucide-react";
 
 const cmsData = {
