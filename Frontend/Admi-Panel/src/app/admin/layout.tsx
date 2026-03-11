@@ -31,7 +31,7 @@ const menuItems = [
   { icon: CreditCard, label: "Credit System", href: "/admin/credit" },
   { icon: Wallet, label: "Wallet & Payments", href: "/admin/wallet" },
   { icon: Wrench, label: "Services", href: "/admin/services" },
-  { icon: FileText, label: "KRYROS Invoice", href: "/admin/invoice" },
+  { icon: FileText, label: "Invoicing", href: "/admin/invoice" },
   { icon: FileText, label: "CMS & Pages", href: "/admin/cms" },
   { icon: BarChart3, label: "Reports", href: "/admin/reports" },
   { icon: Settings, label: "Settings", href: "/admin/settings" },
