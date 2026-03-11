@@ -163,7 +163,7 @@ export default function CartPage() {
                 </div>
                 {shipping > 0 && (
                   <p className="text-xs text-green-600">
-                    Add {formatPrice(Number(5000 - subtotal))} more for free shipping!
+                    Add {formatPrice(Number(shippingConfig.threshold - subtotal))} more for free shipping!
                   </p>
                 )}
                 <hr className="my-3 border-slate-200" />
@@ -214,7 +214,7 @@ export default function CartPage() {
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <Truck className="h-5 w-5 text-green-500" />
-                  <span>Free shipping on orders over $ 5,000</span>
+                  <span>Free shipping on orders over {formatPrice(shippingConfig.threshold)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-sm text-slate-600">
                   <CreditCard className="h-5 w-5 text-green-500" />

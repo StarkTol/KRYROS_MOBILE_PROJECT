@@ -21,10 +21,19 @@ import {
 import { Logo } from "./Logo"
 import { AuthButtons } from "./AuthButtons"
 import { useCart } from "@/providers/CartProvider"
-import { wishlistApi } from "@/lib/api"
+import { wishlistApi, settingsApi } from "@/lib/api"
 import { megaMenuCategories } from "@/lib/store-data"
+import { formatPrice } from "@/lib/utils"
 
 export function TopBar() {
+  const [shippingConfig, setShippingConfig] = useState({ fee: 50, threshold: 5000 });
+
+  useEffect(() => {
+    settingsApi.getShippingConfig().then(res => {
+      if (res.data) setShippingConfig(res.data);
+    });
+  }, []);
+
   return (
     <div className="bg-slate-900 text-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs">
@@ -43,9 +52,9 @@ export function TopBar() {
           </span>
         </div>
         <div className="flex w-full items-center justify-center gap-4 md:w-auto md:justify-end">
-          <span className="flex items-center gap-1 text-green-500">
+          <span className="flex items-center gap-1 text-green-500 font-bold">
             <Truck className="h-3 w-3" />
-            Free Shipping on Orders Over $ 5,000
+            Free Shipping on Orders Over {formatPrice(shippingConfig.threshold)}
           </span>
         </div>
       </div>
@@ -64,6 +73,13 @@ export function Header() {
   const accountRef = useRef<HTMLDivElement>(null)
   const { getItemCount } = useCart()
   const [wishlistCount, setWishlistCount] = useState<number>(0)
+  const [shippingConfig, setShippingConfig] = useState({ fee: 50, threshold: 5000 });
+
+  useEffect(() => {
+    settingsApi.getShippingConfig().then(res => {
+      if (res.data) setShippingConfig(res.data);
+    });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40)
@@ -296,7 +312,7 @@ export function Header() {
       <div className="hidden border-t border-slate-200 lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-8 px-4 py-2">
           {[
-            { icon: Truck, text: "Free Shipping Over $ 5,000" },
+            { icon: Truck, text: "Free Shipping Over " + formatPrice(shippingConfig.threshold) },
             { icon: CreditCard, text: "Flexible Credit Plans" },
             { icon: Headset, text: "24/7 Support" },
           ].map(({ icon: Icon, text }) => (

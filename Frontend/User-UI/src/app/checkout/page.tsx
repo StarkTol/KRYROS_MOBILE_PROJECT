@@ -236,27 +236,24 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-semibold text-slate-900">Shipping Method</h2>
                 
                 <div className="mt-6 space-y-3">
-                  <label className="flex cursor-pointer items-center justify-between rounded-lg border-2 border-green-500 bg-green-50 p-4">
+                  <div className="flex items-center justify-between rounded-lg border-2 border-green-500 bg-green-50 p-4">
                     <div className="flex items-center gap-3">
-                      <input type="radio" name="shipping" defaultChecked className="text-green-500" />
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full border-2 border-green-500">
+                        <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
+                      </div>
                       <div>
-                        <p className="font-medium text-slate-900">Standard Shipping</p>
-                        <p className="text-sm text-slate-500">3-5 business days</p>
+                        <p className="font-medium text-slate-900">Home Delivery</p>
+                        <p className="text-sm text-slate-500">
+                          {shipping === 0 
+                            ? "Free shipping on orders over " + formatPrice(shippingConfig.threshold)
+                            : "Standard delivery to your doorstep"}
+                        </p>
                       </div>
                     </div>
-                    <span className="font-medium text-slate-900">Free</span>
-                  </label>
-                  
-                  <label className="flex cursor-pointer items-center justify-between rounded-lg border border-slate-200 p-4">
-                    <div className="flex items-center gap-3">
-                      <input type="radio" name="shipping" className="text-green-500" />
-                      <div>
-                        <p className="font-medium text-slate-900">Express Shipping</p>
-                        <p className="text-sm text-slate-500">1-2 business days</p>
-                      </div>
-                    </div>
-                    <span className="font-medium text-slate-900">{formatPrice(250)}</span>
-                  </label>
+                    <span className="font-bold text-slate-900">
+                      {shipping === 0 ? "Free" : formatPrice(Number(shipping))}
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="mt-8 flex justify-between">
