@@ -3,6 +3,7 @@
 import { Plus, Search, CreditCard, Eye, Printer, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useInvoiceStore } from "@/providers/InvoiceStore";
+import { formatPrice } from "@/lib/utils";
 
 export default function PaymentPage() {
   const { payments } = useInvoiceStore();
