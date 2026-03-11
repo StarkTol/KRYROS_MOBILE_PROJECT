@@ -64,7 +64,7 @@ export default function SettingsPage() {
   async function loadShippingMethods() {
     setLoading(true);
     try {
-      const res = await fetch("/api/shipping");
+      const res = await fetch("/api/admin/shipping");
       if (res.ok) {
         const data = await res.json();
         setShippingMethods(data);
@@ -105,7 +105,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setIsSaving(true);
     try {
-      const url = editingMethod ? `/api/shipping/${editingMethod.id}` : "/api/shipping";
+      const url = editingMethod ? `/api/admin/shipping/${editingMethod.id}` : "/api/admin/shipping";
       const method = editingMethod ? "PUT" : "POST";
       
       const res = await fetch(url, {
@@ -130,7 +130,7 @@ export default function SettingsPage() {
   const handleDeleteMethod = async (id: string) => {
     if (!confirm("Are you sure you want to delete this shipping method?")) return;
     try {
-      const res = await fetch(`/api/shipping/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/shipping/${id}`, { method: "DELETE" });
       if (res.ok) loadShippingMethods();
     } catch (e) {
       console.error("Failed to delete shipping method", e);

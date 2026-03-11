@@ -44,20 +44,30 @@ function writeLS<T>(key: string, val: T) {
 }
 
 export function AdminSettingsProvider({ children }: { children: React.ReactNode }) {
-  const init = readLS(LS_KEY, { companyName: "KRYROS", logoDataUrl: null as string | null });
-  const [companyName, setCompanyName] = useState<string>(init.companyName);
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(init.logoDataUrl);
-
-  const initNotifs = readLS<NotificationItem[]>(LS_NOTIFS, []);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(initNotifs);
+  const [companyName, setCompanyName] = useState<string>("KRYROS");
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    const init = readLS(LS_KEY, { companyName: "KRYROS", logoDataUrl: null as string | null });
+    setCompanyName(init.companyName);
+    setLogoDataUrl(init.logoDataUrl);
+
+    const initNotifs = readLS<NotificationItem[]>(LS_NOTIFS, []);
+    setNotifications(initNotifs);
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
     writeLS(LS_KEY, { companyName, logoDataUrl });
-  }, [companyName, logoDataUrl]);
+  }, [companyName, logoDataUrl, isLoaded]);
 
   useEffect(() => {
+    if (!isLoaded) return;
     writeLS(LS_NOTIFS, notifications);
-  }, [notifications]);
+  }, [notifications, isLoaded]);
 
   const unseenCount = useMemo(() => notifications.filter(n => !n.seen).length, [notifications]);
 
