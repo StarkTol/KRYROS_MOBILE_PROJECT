@@ -166,10 +166,14 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { InvoiceStoreProvider } from "@/providers/InvoiceStore";
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AdminSettingsProvider>
-      <Shell>{children}</Shell>
+      <InvoiceStoreProvider>
+        <Shell>{children}</Shell>
+      </InvoiceStoreProvider>
     </AdminSettingsProvider>
   );
 }
