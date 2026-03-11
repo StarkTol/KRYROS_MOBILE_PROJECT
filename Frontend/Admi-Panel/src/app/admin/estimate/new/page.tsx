@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useInvoiceStore, LineItem } from "@/providers/InvoiceStore";
 import { useAdminSettings } from "@/providers/AdminSettingsProvider";
+import { formatPrice } from "@/lib/utils";
 
 export default function NewEstimatePage() {
   const router = useRouter();
