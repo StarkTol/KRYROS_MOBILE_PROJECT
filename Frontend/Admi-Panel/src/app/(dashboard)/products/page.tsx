@@ -368,7 +368,7 @@ export default function ProductsPage() {
                         price: "",
                         description: "",
                         categorySlug: "general",
-                        brandSlug: "",
+                        brandId: "",
                         isFeatured: false,
                         isActive: true,
                         images: [],
