@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, InternalServerErrorException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ShippingService } from './shipping.service';
 import { CreateShippingMethodDto, UpdateShippingMethodDto } from './dto/shipping-method.dto';
@@ -13,8 +13,13 @@ export class ShippingController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new shipping method (Admin only)' })
-  create(@Body() dto: CreateShippingMethodDto) {
-    return this.shippingService.create(dto);
+  async create(@Body() dto: CreateShippingMethodDto) {
+    try {
+      return await this.shippingService.create(dto);
+    } catch (error) {
+      console.error('Error in ShippingController.create:', error);
+      throw new InternalServerErrorException(error.message || 'Internal server error');
+    }
   }
 
   @Get()
@@ -39,8 +44,13 @@ export class ShippingController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a shipping method (Admin only)' })
-  update(@Param('id') id: string, @Body() dto: UpdateShippingMethodDto) {
-    return this.shippingService.update(id, dto);
+  async update(@Param('id') id: string, @Body() dto: UpdateShippingMethodDto) {
+    try {
+      return await this.shippingService.update(id, dto);
+    } catch (error) {
+      console.error('Error in ShippingController.update:', error);
+      throw new InternalServerErrorException(error.message || 'Internal server error');
+    }
   }
 
   @Delete(':id')

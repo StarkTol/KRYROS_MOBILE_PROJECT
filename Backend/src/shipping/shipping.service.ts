@@ -7,11 +7,21 @@ export class ShippingService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateShippingMethodDto) {
-    return this.prisma.shippingMethod.create({
-      data: {
-        ...dto,
-      },
-    });
+    try {
+      return await this.prisma.shippingMethod.create({
+        data: {
+          name: dto.name,
+          description: dto.description,
+          fee: dto.fee,
+          minThreshold: dto.minThreshold ?? 0,
+          estimatedDays: dto.estimatedDays,
+          isActive: dto.isActive ?? true,
+        },
+      });
+    } catch (error) {
+      console.error('Prisma Error creating shipping method:', error);
+      throw error;
+    }
   }
 
   async findAll() {
