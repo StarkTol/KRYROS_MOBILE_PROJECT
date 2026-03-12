@@ -4,7 +4,7 @@ services:
     env: node
     region: oregon
     rootDir: Backend
-    buildCommand: npm install && npm install @nestjs/cli && npx prisma generate && npx nest build
+    buildCommand: npm install && npm install @nestjs/cli && npx prisma generate && npx nest build && ls -la dist/
     startCommand: npm run db:push && npm start
     envVars:
       - key: DATABASE_URL
