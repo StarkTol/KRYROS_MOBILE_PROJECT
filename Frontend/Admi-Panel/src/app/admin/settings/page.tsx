@@ -119,9 +119,13 @@ export default function SettingsPage() {
         loadShippingMethods();
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
+      } else {
+        const data = await res.json();
+        alert(`Failed to save: ${data.error || res.statusText}`);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Failed to save shipping method", e);
+      alert(`Error: ${e.message || "An unknown error occurred"}`);
     } finally {
       setIsSaving(false);
     }
