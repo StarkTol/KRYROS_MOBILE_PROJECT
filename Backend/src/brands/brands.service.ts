@@ -37,9 +37,14 @@ export class BrandsService {
   }
 
   async findAll() {
-    return this.prisma.brand.findMany({
-      orderBy: { name: 'asc' },
-    });
+    try {
+      return await this.prisma.brand.findMany({
+        orderBy: { name: 'asc' },
+      });
+    } catch (e) {
+      console.error('Failed to load brands due to DB corruption:', e.message);
+      return []; // Return empty list instead of crashing
+    }
   }
 
   async findOne(id: number) {

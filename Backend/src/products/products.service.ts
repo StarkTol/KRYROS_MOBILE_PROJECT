@@ -28,23 +28,42 @@ export class ProductsService {
       ];
     }
 
-    const [products, total] = await Promise.all([
-      this.prisma.product.findMany({
-        where,
-        skip,
-        take,
-        include: {
-          category: true,
-          brand: true,
-          images: { where: { isPrimary: true } },
-          inventory: true,
-        },
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.product.count({ where }),
-    ]);
-
-    return { data: products, meta: { total, skip, take } };
+    try {
+      const [products, total] = await Promise.all([
+        this.prisma.product.findMany({
+          where,
+          skip,
+          take,
+          include: {
+            category: true,
+            brand: true,
+            images: { where: { isPrimary: true } },
+            inventory: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.product.count({ where }),
+      ]);
+      return { data: products, meta: { total, skip, take } };
+    } catch (e) {
+      console.error('Failed to load products due to DB corruption:', e.message);
+      // Fallback: load products without including corrupted Brand data
+      const [products, total] = await Promise.all([
+        this.prisma.product.findMany({
+          where,
+          skip,
+          take,
+          include: {
+            category: true,
+            images: { where: { isPrimary: true } },
+            inventory: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.product.count({ where }),
+      ]);
+      return { data: products, meta: { total, skip, take } };
+    }
   }
 
   async findById(id: string) {
