@@ -44,4 +44,12 @@ export class BrandsController {
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.brandsService.remove(id);
   }
+
+  @Post('cleanup-corrupted-data')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cleanup corrupted brand data (Admin only)' })
+  async cleanup() {
+    return this.brandsService.cleanupCorruptedData();
+  }
 }

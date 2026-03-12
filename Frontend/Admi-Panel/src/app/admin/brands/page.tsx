@@ -56,6 +56,21 @@ export default function BrandsPage() {
     }
   }, []);
 
+  const handleCleanup = async () => {
+    if (!confirm("This will clear all brand data and reset product brand assignments to fix database inconsistencies. Continue?")) return;
+    
+    try {
+      const res = await fetch("/api/admin/brands/cleanup-corrupted-data", {
+        method: "POST"
+      });
+      if (!res.ok) throw new Error("Cleanup failed");
+      alert("Database cleaned up successfully. You can now re-add your brands.");
+      await loadBrands();
+    } catch (e: any) {
+      alert(e.message);
+    }
+  };
+
   useEffect(() => {
     loadBrands();
   }, [loadBrands]);
@@ -140,6 +155,10 @@ export default function BrandsPage() {
           <p className="text-slate-500">Manage your product brands and manufacturers</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={handleCleanup} className="btn-danger flex items-center gap-2 text-xs py-1 px-3">
+            <Trash2 className="h-3 w-3" />
+            Repair DB
+          </button>
           <button onClick={loadBrands} className="btn-secondary flex items-center gap-2">
             <RefreshCcw className="h-4 w-4" />
             Refresh

@@ -111,7 +111,6 @@ export default function CMSPage() {
 
   const tabs = [
     { id: "banners", label: "Banners", icon: ImageIcon, count: banners.length },
-    { id: "categories", label: "Categories Grid", icon: Layout, count: sections.find((s:any) => s.type === "categories")?.config?.items?.length || 0 },
     { id: "testimonials", label: "Testimonials", icon: MessageSquare, count: sections.filter((s:any) => s.type === "testimonials" && s.isActive).length },
     { id: "wholesale", label: "Wholesale Deals", icon: Star, count: sections.filter((s:any) => s.type === "wholesale_deals" && s.isActive).length },
   ];
@@ -399,130 +398,6 @@ export default function CMSPage() {
             {!loading && filteredBanners.length === 0 && (
               <div className="p-4 text-sm text-slate-500">No banners found</div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* Categories Tab */}
-      {activeTab === "categories" && (
-        <div className="admin-card p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Homepage Categories</h2>
-              <p className="text-sm text-slate-500">Select which categories appear in the "Shop by Category" section on the homepage.</p>
-            </div>
-            <button
-              onClick={async () => {
-                const res = await fetch("/internal/admin/cms/sections", {
-                  method: "POST",
-                  credentials: "same-origin",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ 
-                    type: "categories", 
-                    title: "Shop by Category", 
-                    subtitle: "Browse our wide range of tech products",
-                    isActive: true, 
-                    order: 3, 
-                    config: { items: [] } 
-                  }),
-                });
-                if (res.ok) {
-                  await loadSections();
-                  alert("Categories section initialized");
-                }
-              }}
-              className="btn-secondary"
-            >
-              Initialize Section
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            {sections.filter((s:any) => s.type === "categories").map((s:any) => (
-              <div key={s.id} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Section Title</label>
-                    <input 
-                      defaultValue={s.title} 
-                      className="admin-input"
-                      onBlur={async (e) => {
-                        await fetch(`/internal/admin/cms/sections/${s.id}`, {
-                          method: "PUT",
-                          credentials: "same-origin",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ title: e.target.value }),
-                        });
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Section Subtitle</label>
-                    <input 
-                      defaultValue={s.subtitle} 
-                      className="admin-input"
-                      onBlur={async (e) => {
-                        await fetch(`/internal/admin/cms/sections/${s.id}`, {
-                          method: "PUT",
-                          credentials: "same-origin",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ subtitle: e.target.value }),
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 py-2 border-b">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">Selected Categories</h3>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {(Array.isArray(s.config?.items) ? s.config.items : []).map((it:any, idx:number) => (
-                    <div key={idx} className="relative group bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                      <button 
-                        onClick={async () => {
-                          const items = [...s.config.items];
-                          items.splice(idx, 1);
-                          await fetch(`/internal/admin/cms/sections/${s.id}`, {
-                            method: "PUT",
-                            credentials: "same-origin",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ config: { items } }),
-                          });
-                          await loadSections();
-                        }}
-                        className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                      <div className="font-medium text-slate-900">{it.name}</div>
-                      <div className="text-[10px] text-slate-500 uppercase tracking-tighter">Slug: {it.slug}</div>
-                    </div>
-                  ))}
-                  <button 
-                    onClick={() => {
-                      const name = prompt("Enter Category Name:");
-                      const slug = prompt("Enter Category Slug (e.g. phones):");
-                      if (name && slug) {
-                        const items = Array.isArray(s.config?.items) ? [...s.config.items] : [];
-                        items.push({ name, slug });
-                        fetch(`/internal/admin/cms/sections/${s.id}`, {
-                          method: "PUT",
-                          credentials: "same-origin",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ config: { items } }),
-                        }).then(() => loadSections());
-                      }
-                    }}
-                    className="border-2 border-dashed border-slate-200 rounded-xl p-4 flex flex-col items-center justify-center text-slate-400 hover:border-green-500 hover:text-green-500 transition-all"
-                  >
-                    <Plus className="h-5 w-5 mb-1" />
-                    <span className="text-xs font-bold">Add Category</span>
-                  </button>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}

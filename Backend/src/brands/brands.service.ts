@@ -73,4 +73,27 @@ export class BrandsService {
       where: { id },
     });
   }
+
+  async cleanupCorruptedData() {
+    console.log('Cleaning up corrupted brand data...');
+    
+    // 1. Update all products to remove brandId references
+    const updatedProducts = await this.prisma.product.updateMany({
+      data: {
+        brandId: null
+      }
+    });
+
+    // 2. Delete all brands
+    try {
+      await this.prisma.$executeRawUnsafe('TRUNCATE TABLE "brands" RESTART IDENTITY CASCADE;');
+    } catch (e) {
+      await this.prisma.brand.deleteMany({});
+    }
+
+    return { 
+      message: 'Cleanup complete', 
+      productsUpdated: updatedProducts.count 
+    };
+  }
 }

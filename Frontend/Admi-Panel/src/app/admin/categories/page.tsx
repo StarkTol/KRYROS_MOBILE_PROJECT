@@ -8,10 +8,11 @@ import {
   Search,
   RefreshCcw,
   LayoutGrid,
-  CheckCircle2,
-  XCircle,
-  X,
-  ChevronRight
+  CheckCircle2, 
+  XCircle, 
+  X, 
+  ChevronRight,
+  Sparkles
 } from "lucide-react";
 
 type Category = {
@@ -21,6 +22,7 @@ type Category = {
   description?: string;
   image?: string;
   isActive: boolean;
+  showOnHome: boolean;
   parentId?: string;
   children?: Category[];
 };
@@ -33,6 +35,8 @@ export default function CategoriesPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cmsSection, setCmsSection] = useState<any>(null);
+  const [updatingCms, setUpdatingCms] = useState(false);
   
   const [form, setForm] = useState({
     name: "",
@@ -40,6 +44,7 @@ export default function CategoriesPage() {
     description: "",
     parentId: "",
     isActive: true,
+    showOnHome: false,
   });
 
   const loadCategories = useCallback(async () => {
@@ -57,9 +62,42 @@ export default function CategoriesPage() {
     }
   }, []);
 
+  const loadCmsSection = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/cms/sections");
+      if (res.ok) {
+        const sections = await res.json();
+        const catSection = (sections.data || sections).find((s: any) => s.type === "categories");
+        setCmsSection(catSection);
+      }
+    } catch (e) {
+      console.error("Failed to load CMS section", e);
+    }
+  }, []);
+
   useEffect(() => {
     loadCategories();
-  }, [loadCategories]);
+    loadCmsSection();
+  }, [loadCategories, loadCmsSection]);
+
+  const handleUpdateCms = async (field: string, value: string) => {
+    if (!cmsSection) return;
+    setUpdatingCms(true);
+    try {
+      const res = await fetch(`/api/admin/cms/sections/${cmsSection.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (res.ok) {
+        setCmsSection({ ...cmsSection, [field]: value });
+      }
+    } catch (e) {
+      console.error("Failed to update CMS section", e);
+    } finally {
+      setUpdatingCms(false);
+    }
+  };
 
   const handleOpenModal = (category?: Category) => {
     if (category) {
@@ -70,6 +108,7 @@ export default function CategoriesPage() {
         description: category.description || "",
         parentId: category.parentId || "",
         isActive: category.isActive,
+        showOnHome: category.showOnHome || false,
       });
     } else {
       setEditingCategory(null);
@@ -79,9 +118,23 @@ export default function CategoriesPage() {
         description: "",
         parentId: "",
         isActive: true,
+        showOnHome: false,
       });
     }
     setShowModal(true);
+  };
+
+  const handleToggleHome = async (category: Category) => {
+    try {
+      const res = await fetch(`/api/admin/categories/${category.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ showOnHome: !category.showOnHome }),
+      });
+      if (res.ok) await loadCategories();
+    } catch (e) {
+      console.error("Failed to toggle home status", e);
+    }
   };
 
   const handleSave = async () => {
@@ -157,6 +210,51 @@ export default function CategoriesPage() {
         </div>
       </div>
 
+      {/* Homepage CMS Section Settings */}
+      {cmsSection && (
+        <div className="admin-card p-6 bg-green-50/50 border-green-100">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+              <Sparkles className="h-5 w-5 fill-current" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">Homepage "Shop by Category" Settings</h2>
+              <p className="text-sm text-slate-500">Customize how categories appear on the storefront homepage</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Section Title</label>
+              <input
+                defaultValue={cmsSection.title}
+                onBlur={(e) => handleUpdateCms("title", e.target.value)}
+                className="admin-input w-full bg-white"
+                placeholder="e.g. Shop by Category"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Section Subtitle</label>
+              <input
+                defaultValue={cmsSection.subtitle}
+                onBlur={(e) => handleUpdateCms("subtitle", e.target.value)}
+                className="admin-input w-full bg-white"
+                placeholder="e.g. Browse our wide range of tech products"
+              />
+            </div>
+          </div>
+          
+          <div className="mt-4 p-3 bg-white/50 rounded-lg border border-green-100/50 flex items-center justify-between">
+            <div className="text-sm text-slate-600">
+              Currently showing <span className="font-bold text-green-600">{categories.filter(c => c.showOnHome).length}</span> categories on the homepage.
+            </div>
+            <div className="text-xs text-slate-400 italic">
+              {updatingCms ? "Saving changes..." : "Auto-saved on blur"}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="admin-card overflow-hidden">
         <div className="p-4 border-b bg-slate-50 flex items-center gap-4">
           <div className="relative flex-1">
@@ -178,18 +276,19 @@ export default function CategoriesPage() {
                 <th className="px-6 py-3">Category Name</th>
                 <th className="px-6 py-3">Slug</th>
                 <th className="px-6 py-3">Parent</th>
-                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3 text-center">Homepage</th>
+                <th className="px-6 py-3 text-center">Status</th>
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">Loading categories...</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">Loading categories...</td>
                 </tr>
               ) : filteredCategories.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-slate-500">No categories found.</td>
+                  <td colSpan={6} className="px-6 py-12 text-center text-slate-500">No categories found.</td>
                 </tr>
               ) : (
                 filteredCategories.map((category) => (
@@ -220,7 +319,20 @@ export default function CategoriesPage() {
                         <span className="text-slate-400 text-sm">Root</span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleToggleHome(category)}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          category.showOnHome 
+                            ? "bg-green-100 text-green-600 hover:bg-green-200" 
+                            : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                        }`}
+                        title={category.showOnHome ? "Remove from Homepage" : "Show on Homepage"}
+                      >
+                        <Sparkles className={`h-4 w-4 ${category.showOnHome ? "fill-current" : ""}`} />
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-center">
                       {category.isActive ? (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
                           <CheckCircle2 className="h-3 w-3" />
@@ -304,15 +416,27 @@ export default function CategoriesPage() {
                   className="admin-input w-full h-24"
                 />
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={form.isActive}
-                  onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
-                  className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="isActive" className="text-sm font-medium text-slate-700">Active and visible in shop</label>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="isActive"
+                    checked={form.isActive}
+                    onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="isActive" className="text-sm font-medium text-slate-700">Active</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="showOnHome"
+                    checked={form.showOnHome}
+                    onChange={(e) => setForm({ ...form, showOnHome: e.target.checked })}
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <label htmlFor="showOnHome" className="text-sm font-medium text-slate-700">Show on Homepage</label>
+                </div>
               </div>
             </div>
             <div className="px-6 py-4 border-t bg-slate-50 flex justify-end gap-3">
