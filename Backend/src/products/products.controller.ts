@@ -47,6 +47,14 @@ export class ProductsController {
     return this.productsService.getFlashSaleProducts();
   }
 
+  @Get('grouped')
+  @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'Get products grouped by category and brand' })
+  getGrouped(@Query('featured') featured?: string) {
+    const isFeatured = featured === 'true' ? true : (featured === 'false' ? false : undefined);
+    return this.productsService.getGroupedProducts(isFeatured);
+  }
+
   @Put(':id/flags')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

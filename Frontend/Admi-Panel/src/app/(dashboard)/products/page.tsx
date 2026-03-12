@@ -13,12 +13,26 @@ type Product = {
   isFeatured?: boolean;
   isFlashSale?: boolean;
   flashSaleEnd?: string | null;
-  category?: { name: string };
-  brand?: { name: string };
+  category?: { id: string; name: string; slug: string };
+  brand?: { id: number; name: string; slug: string };
+};
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+type Brand = {
+  id: number;
+  name: string;
+  slug: string;
 };
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
@@ -31,8 +45,8 @@ export default function ProductsPage() {
     sku: "",
     price: "",
     description: "",
-    categorySlug: "general",
-    brandSlug: "",
+    categorySlug: "",
+    brandId: "" as string | number,
     isFeatured: false,
     isActive: true,
     images: [] as string[],
@@ -44,7 +58,7 @@ export default function ProductsPage() {
     price: "",
     description: "",
     categorySlug: "",
-    brandSlug: "",
+    brandId: "" as string | number,
     isActive: true,
     isFeatured: false,
     images: [] as string[],
@@ -78,6 +92,19 @@ export default function ProductsPage() {
     return match ? decodeURIComponent(match[1]) : "";
   }
 
+  const loadData = useCallback(async () => {
+    try {
+      const [catRes, brandRes] = await Promise.all([
+        fetch("/api/admin/categories"),
+        fetch("/api/admin/brands")
+      ]);
+      if (catRes.ok) setCategories(await catRes.json());
+      if (brandRes.ok) setBrands(await brandRes.json());
+    } catch (e) {
+      console.error("Failed to load categories/brands", e);
+    }
+  }, []);
+
   const load = useCallback(async (search = "") => {
     setLoading(true);
     setError(null);
@@ -97,11 +124,12 @@ export default function ProductsPage() {
   }, []);
 
   useEffect(() => {
+    loadData();
     const timer = setTimeout(() => {
       load(searchTerm);
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchTerm, load]);
+  }, [searchTerm, load, loadData]);
 
   return (
     <>
@@ -164,18 +192,26 @@ export default function ProductsPage() {
                 className="admin-input w-full h-24"
               />
               <div className="grid grid-cols-2 gap-2">
-                <input
-                  placeholder="Category (slug)"
+                <select
                   value={form.categorySlug}
                   onChange={(e) => setForm({ ...form, categorySlug: e.target.value })}
                   className="admin-input w-full"
-                />
-                <input
-                  placeholder="Brand (slug)"
-                  value={form.brandSlug}
-                  onChange={(e) => setForm({ ...form, brandSlug: e.target.value })}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.slug}>{c.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={form.brandId}
+                  onChange={(e) => setForm({ ...form, brandId: e.target.value })}
                   className="admin-input w-full"
-                />
+                >
+                  <option value="">Select Brand (Optional)</option>
+                  {brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 text-sm">
@@ -242,7 +278,7 @@ export default function ProductsPage() {
                         formData.append("price", String(Number(form.price)));
                         formData.append("description", form.description);
                         formData.append("categorySlug", form.categorySlug || "general");
-                        if (form.brandSlug) formData.append("brandSlug", form.brandSlug);
+                        if (form.brandId) formData.append("brandId", String(form.brandId));
                         formData.append("isActive", String(form.isActive));
                         formData.append("isFeatured", String(form.isFeatured));
                         // Recompress large files to blobs if needed for better size/quality tradeoff
@@ -278,7 +314,7 @@ export default function ProductsPage() {
                             price: Number(form.price),
                             description: form.description,
                             categorySlug: form.categorySlug || "general",
-                            brandSlug: form.brandSlug || undefined,
+                            brandId: form.brandId ? Number(form.brandId) : undefined,
                             isActive: form.isActive,
                             isFeatured: form.isFeatured,
                             imageDataUrls: form.images,
@@ -303,9 +339,9 @@ export default function ProductsPage() {
                           sku: form.sku,
                           price: Number(form.price),
                           description: form.description,
-                          categorySlug: form.categorySlug || "general",
-                          brandSlug: form.brandSlug || undefined,
-                          isActive: form.isActive,
+                        categorySlug: form.categorySlug || "general",
+                        brandId: form.brandId ? Number(form.brandId) : undefined,
+                        isActive: form.isActive,
                           isFeatured: form.isFeatured,
                           imageDataUrls: form.images,
                         };
@@ -476,9 +512,9 @@ export default function ProductsPage() {
                         setEditForm({
                           name: p.name,
                           price: String(p.price ?? ""),
-                          description: "",
-                          categorySlug: "",
-                          brandSlug: "",
+                          description: "", // If you want to keep description, you'll need it in the Product type
+                          categorySlug: p.category?.slug || "",
+                          brandId: p.brand?.id || "",
                           isActive: p.isActive !== false,
                           isFeatured: !!p.isFeatured,
                           images: [],
@@ -583,18 +619,26 @@ export default function ProductsPage() {
                 className="admin-input w-full h-24"
               />
               <div className="grid grid-cols-2 gap-2">
-                <input
-                  placeholder="Category (slug)"
+                <select
                   value={editForm.categorySlug}
                   onChange={(e) => setEditForm({ ...editForm, categorySlug: e.target.value })}
                   className="admin-input w-full"
-                />
-                <input
-                  placeholder="Brand (slug)"
-                  value={editForm.brandSlug}
-                  onChange={(e) => setEditForm({ ...editForm, brandSlug: e.target.value })}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.slug}>{c.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={editForm.brandId}
+                  onChange={(e) => setEditForm({ ...editForm, brandId: e.target.value })}
                   className="admin-input w-full"
-                />
+                >
+                  <option value="">Select Brand (Optional)</option>
+                  {brands.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 text-sm">
@@ -654,7 +698,7 @@ export default function ProductsPage() {
                         if (editForm.price) formData.append("price", String(Number(editForm.price)));
                         if (editForm.description) formData.append("description", editForm.description);
                         if (editForm.categorySlug) formData.append("categorySlug", editForm.categorySlug);
-                        if (editForm.brandSlug) formData.append("brandSlug", editForm.brandSlug);
+                        if (editForm.brandId) formData.append("brandId", String(editForm.brandId));
                         formData.append("isActive", String(editForm.isActive));
                         formData.append("isFeatured", String(editForm.isFeatured));
                         formData.append("replaceImages", "true");
@@ -679,7 +723,7 @@ export default function ProductsPage() {
                             ...(editForm.price ? { price: Number(editForm.price) } : {}),
                             ...(editForm.description ? { description: editForm.description } : {}),
                             ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
-                            ...(editForm.brandSlug ? { brandSlug: editForm.brandSlug } : {}),
+                            ...(editForm.brandId ? { brandId: Number(editForm.brandId) } : {}),
                             isActive: editForm.isActive,
                             isFeatured: editForm.isFeatured,
                             ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
@@ -704,7 +748,7 @@ export default function ProductsPage() {
                           ...(editForm.price ? { price: Number(editForm.price) } : {}),
                           ...(editForm.description ? { description: editForm.description } : {}),
                           ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
-                          ...(editForm.brandSlug ? { brandSlug: editForm.brandSlug } : {}),
+                          ...(editForm.brandId ? { brandId: Number(editForm.brandId) } : {}),
                           isActive: editForm.isActive,
                           isFeatured: editForm.isFeatured,
                           ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),

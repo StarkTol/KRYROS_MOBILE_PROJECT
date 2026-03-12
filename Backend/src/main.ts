@@ -72,7 +72,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      forbidNonWhitelisted: true,
+      // forbidNonWhitelisted: true, // Commented out to prevent strict rejection of unexpected fields
     }),
   );
 

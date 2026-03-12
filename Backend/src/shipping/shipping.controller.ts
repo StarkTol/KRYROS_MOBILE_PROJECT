@@ -18,7 +18,12 @@ export class ShippingController {
       return await this.shippingService.create(dto);
     } catch (error) {
       console.error('Error in ShippingController.create:', error);
-      throw new InternalServerErrorException(error.message || 'Internal server error');
+      // Return a 500 with more detail to help debugging
+      throw new InternalServerErrorException({
+        message: 'Failed to create shipping method',
+        error: error.message,
+        details: error.toString()
+      });
     }
   }
 
@@ -49,7 +54,11 @@ export class ShippingController {
       return await this.shippingService.update(id, dto);
     } catch (error) {
       console.error('Error in ShippingController.update:', error);
-      throw new InternalServerErrorException(error.message || 'Internal server error');
+      throw new InternalServerErrorException({
+        message: 'Failed to update shipping method',
+        error: error.message,
+        details: error.toString()
+      });
     }
   }
 

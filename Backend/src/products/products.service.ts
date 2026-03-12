@@ -118,6 +118,58 @@ export class ProductsService {
     });
   }
 
+  async getGroupedProducts(isFeatured?: boolean) {
+    const products = await this.prisma.product.findMany({
+      where: { 
+        isActive: true,
+        ...(isFeatured !== undefined ? { isFeatured } : {})
+      },
+      include: { 
+        images: true, 
+        category: true, 
+        brand: true 
+      },
+      orderBy: [
+        { category: { name: 'asc' } },
+        { brand: { name: 'asc' } },
+        { name: 'asc' }
+      ]
+    });
+
+    const grouped: any[] = [];
+
+    products.forEach(product => {
+      const category = product.category;
+      const brand = (product as any).brand || { id: 0, name: 'Other', slug: 'other' };
+
+      let categoryGroup = grouped.find(g => g.id === category.id);
+      if (!categoryGroup) {
+        categoryGroup = {
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          brands: []
+        };
+        grouped.push(categoryGroup);
+      }
+
+      let brandGroup = categoryGroup.brands.find((b: any) => b.id === brand.id);
+      if (!brandGroup) {
+        brandGroup = {
+          id: brand.id,
+          name: brand.name,
+          slug: brand.slug,
+          products: []
+        };
+        categoryGroup.brands.push(brandGroup);
+      }
+
+      brandGroup.products.push(product);
+    });
+
+    return grouped;
+  }
+
   private toSlug(input: string) {
     return input
       .toLowerCase()
@@ -144,8 +196,8 @@ export class ProductsService {
       create: { name: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: categorySlug, isActive: true },
     });
 
-    let brandId: string | undefined = undefined;
-    if (brandSlug) {
+    let brandId: number | undefined = data.brandId;
+    if (!brandId && brandSlug) {
       const brand = await this.prisma.brand.upsert({
         where: { slug: brandSlug },
         update: {},
@@ -213,8 +265,8 @@ export class ProductsService {
       create: { name: categorySlug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), slug: categorySlug, isActive: true },
     });
 
-    let brandId: string | undefined = undefined;
-    if (brandSlug) {
+    let brandId: number | undefined = data.brandId;
+    if (!brandId && brandSlug) {
       const brand = await this.prisma.brand.upsert({
         where: { slug: brandSlug },
         update: {},
@@ -301,8 +353,8 @@ export class ProductsService {
       });
       categoryId = cat.id;
     }
-    let brandId: string | null | undefined;
-    if (data.brandSlug !== undefined) {
+    let brandId: number | null | undefined = data.brandId;
+    if (brandId === undefined && data.brandSlug !== undefined) {
       const bslug = (data.brandSlug || '').trim().toLowerCase();
       if (bslug) {
         const brand = await this.prisma.brand.upsert({
@@ -482,6 +534,7 @@ export class ProductsService {
           categoryId: category.id,
           brandId: brand.id,
           isActive: true,
+          isFlashSale: false,
         },
       });
       // Ensure primary image exists

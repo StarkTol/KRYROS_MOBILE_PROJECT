@@ -140,7 +140,7 @@ model Category {
 }
 
 model Brand {
-  id          String    @id @default(uuid())
+  id          Int       @id @default(autoincrement())
   name        String
   slug        String    @unique
   logo        String?
@@ -184,7 +184,7 @@ model Product {
   // Relations
   categoryId        String
   category          Category  @relation(fields: [categoryId], references: [id])
-  brandId           String?
+  brandId           Int?
   brand             Brand?    @relation(fields: [brandId], references: [id])
   
   images            ProductImage[]

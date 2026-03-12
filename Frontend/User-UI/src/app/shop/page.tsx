@@ -1,52 +1,47 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/home/ProductCard";
+import { ShopContent } from "@/components/shop/ShopContent";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://kryrosbackend.onrender.com/api";
 
-async function getProducts(featured: boolean) {
-  if (featured) {
-    const res = await fetch(`${API_URL}/products/featured`, { cache: "no-store" });
-    if (!res.ok) return [];
-    return res.json();
-  }
-  const url = new URL(`${API_URL}/products`);
-  url.searchParams.set("take", "24");
+async function getGroupedProducts(featured: boolean) {
+  const url = new URL(`${API_URL}/products/grouped`);
+  if (featured) url.searchParams.set("featured", "true");
+  
   const res = await fetch(url.toString(), { cache: "no-store" });
   if (!res.ok) return [];
-  const data = await res.json();
-  return Array.isArray(data?.data) ? data.data : (Array.isArray(data?.products) ? data.products : []);
+  return res.json();
 }
 
 export default async function ShopPage({ searchParams }: { searchParams?: { [key: string]: string } }) {
   const featured = (searchParams?.featured || "").toLowerCase() === "true";
-  const products = await getProducts(featured);
+  const groupedData = await getGroupedProducts(featured);
   const title = featured ? "Featured Products" : "All Products";
 
   return (
     <div className="container-custom py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-900">{title}</h1>
-        <div className="flex items-center gap-3 text-sm">
-          <Link href="/shop" className={`px-3 py-1.5 rounded-lg ${!featured ? "bg-green-500 text-white" : "bg-slate-100 text-slate-700"}`}>
-            All
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 border-b pb-6 border-slate-100">
+        <div>
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">{title}</h1>
+          <p className="text-slate-500 mt-2 font-medium">Browse our premium collection by category and brand</p>
+        </div>
+        <div className="flex items-center bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 shadow-sm">
+          <Link 
+            href="/shop" 
+            className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${!featured ? "bg-white text-green-600 shadow-md" : "text-slate-600 hover:text-slate-900"}`}
+          >
+            All Shop
           </Link>
-          <Link href="/shop?featured=true" className={`px-3 py-1.5 rounded-lg ${featured ? "bg-green-500 text-white" : "bg-slate-100 text-slate-700"}`}>
+          <Link 
+            href="/shop?featured=true" 
+            className={`px-5 py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${featured ? "bg-white text-green-600 shadow-md" : "text-slate-600 hover:text-slate-900"}`}
+          >
             Featured
           </Link>
         </div>
       </div>
 
-      {(!products || products.length === 0) ? (
-        <div className="rounded-xl border bg-white p-10 text-center text-slate-600">
-          No products found.
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {products.map((p: any) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      )}
+      <ShopContent groupedData={groupedData} />
     </div>
   );
 }
