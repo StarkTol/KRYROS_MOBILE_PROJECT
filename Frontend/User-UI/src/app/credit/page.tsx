@@ -33,6 +33,37 @@ interface CreditPlan {
   icon?: string;
 }
 
+const howItWorks = [
+  { 
+    step: 1, 
+    title: "Choose Your Product", 
+    description: "Select any product from our store and click 'Buy on Credit'",
+    icon: ShoppingCart 
+  },
+  { 
+    step: 2, 
+    title: "Select Plan", 
+    description: "Pick a payment plan that fits your budget",
+    icon: Calculator 
+  },
+  { 
+    step: 3, 
+    title: "Quick Approval", 
+    description: "Get approved within minutes with minimal documents",
+    icon: Clock 
+  },
+  { 
+    step: 4, 
+    title: "Start Paying", 
+    description: "Make easy monthly installments and own your product",
+    icon: CreditCard 
+  },
+];
+
+function ShoppingCart(props: any) {
+  return <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>;
+}
+
 function CreditPageContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");

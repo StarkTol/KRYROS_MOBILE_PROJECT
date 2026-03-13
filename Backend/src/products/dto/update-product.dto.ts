@@ -31,6 +31,10 @@ export class UpdateProductDto {
   brandSlug?: string;
 
   @IsOptional()
+  @IsNumber()
+  brandId?: number;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 

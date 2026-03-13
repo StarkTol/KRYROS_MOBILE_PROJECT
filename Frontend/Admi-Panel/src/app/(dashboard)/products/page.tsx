@@ -400,6 +400,8 @@ export default function ProductsPage() {
                         brandId: "",
                         isFeatured: false,
                         isActive: true,
+                        allowCredit: false,
+                        creditMinimum: "",
                         images: [],
                       });
                       setFiles([]);
@@ -786,12 +788,12 @@ export default function ProductsPage() {
                           });
                         }
                         if (!res.ok) {
-                          const fallbackPayload: any = {
+                          const fallbackPayload = {
                             ...(editForm.name ? { name: editForm.name } : {}),
                             ...(editForm.price ? { price: Number(editForm.price) } : {}),
                             ...(editForm.description ? { description: editForm.description } : {}),
                             ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
-                            ...(editForm.brandId ? { brandId: Number(editForm.brandId),
+                            ...(editForm.brandId ? { brandId: Number(editForm.brandId) } : {}),
                             isActive: editForm.isActive,
                             isFeatured: editForm.isFeatured,
                             allowCredit: editForm.allowCredit,

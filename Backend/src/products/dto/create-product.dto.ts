@@ -26,6 +26,10 @@ export class CreateProductDto {
   @IsOptional()
   brandSlug?: string;
 
+  @IsNumber()
+  @IsOptional()
+  brandId?: number;
+
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
