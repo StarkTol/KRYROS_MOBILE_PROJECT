@@ -20,7 +20,7 @@ import {
 import { Logo } from "./Logo"
 import { AuthButtons } from "./AuthButtons"
 import { useCart } from "@/providers/CartProvider"
-import { wishlistApi, settingsApi } from "@/lib/api"
+import { wishlistApi, settingsApi, categoriesApi } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
 
 export function TopBar() {
@@ -33,9 +33,9 @@ export function TopBar() {
   }, []);
 
   return (
-    <div className="bg-slate-900 text-white">
+    <div className="bg-slate-900 text-white md:block hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs">
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="flex items-center gap-4">
           <span className="flex items-center gap-1">
             <Phone className="h-3 w-3" />
             +260 966 423 719
@@ -44,15 +44,11 @@ export function TopBar() {
             <Mail className="h-3 w-3" />
             kryrosmobile@gmail.com
           </span>
-          <span className="flex items-center gap-1">
-            <MapPin className="h-3 w-3" />
-            Lusaka, Zambia
-          </span>
         </div>
-        <div className="flex w-full items-center justify-center gap-4 md:w-auto md:justify-end">
-          <span className="flex items-center gap-1 text-green-500 font-bold">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1 text-green-400 font-bold">
             <Truck className="h-3 w-3" />
-            Free Shipping on Orders Over {formatPrice(shippingConfig.threshold)}
+            Free Shipping Over {formatPrice(shippingConfig.threshold)}
           </span>
         </div>
       </div>
@@ -66,10 +62,17 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [accountOpen, setAccountOpen] = useState(false)
+  const [categories, setCategories] = useState<any[]>([])
   const accountRef = useRef<HTMLDivElement>(null)
   const { getItemCount } = useCart()
   const [wishlistCount, setWishlistCount] = useState<number>(0)
   const [shippingConfig, setShippingConfig] = useState({ fee: 50, threshold: 5000 });
+
+  useEffect(() => {
+    categoriesApi.getAll().then(res => {
+      if (res.data) setCategories(res.data.filter((c: any) => c.isActive !== false).slice(0, 5))
+    })
+  }, [])
 
   useEffect(() => {
     settingsApi.getShippingConfig().then(res => {
@@ -78,7 +81,7 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 40)
+    const handleScroll = () => setIsScrolled(window.scrollY > 20)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
@@ -122,17 +125,22 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? "bg-white/95 shadow-lg backdrop-blur-md"
-          : "bg-white"
+          ? "bg-white/95 shadow-md backdrop-blur-md"
+          : "bg-white border-b border-slate-100"
       }`}
     >
+      {/* Mobile Promo Bar - Sticky with Header */}
+      <div className="bg-green-600 text-white py-1 px-4 text-center text-[10px] font-bold uppercase tracking-widest md:hidden">
+        Free Delivery Over {formatPrice(shippingConfig.threshold)}
+      </div>
+
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
+        <div className={`flex items-center justify-between gap-4 transition-all duration-300 ${isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'}`}>
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Logo size={40} />
+            <Logo size={isScrolled ? 30 : 36} />
           </Link>
 
           {/* Desktop Navigation */}
@@ -143,38 +151,44 @@ export function Header() {
             >
               Home
             </Link>
+            
+            {/* Dynamic Categories */}
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/shop?category=${cat.slug}`}
+                className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 capitalize"
+              >
+                {cat.name}
+              </Link>
+            ))}
+
             <Link
               href="/shop"
               className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
             >
-              Shop
+              All Products
             </Link>
             <Link
               href="/credit"
-              className="rounded-md px-3 py-2 text-sm font-medium text-green-500 transition-colors hover:bg-green-50"
+              className="rounded-md px-3 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50"
             >
-              Credit Plans
-            </Link>
-            <Link
-              href="/wholesale"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
-            >
-              Wholesale
+              Credit
             </Link>
           </nav>
 
           {/* Search Bar - Desktop */}
-          <div className="relative hidden flex-1 lg:block lg:max-w-md">
+          <div className="relative hidden flex-1 lg:block lg:max-w-xs xl:max-w-md">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search products, brands..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all"
               />
             </div>
             <AnimatePresence>
@@ -207,41 +221,40 @@ export function Header() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 md:gap-2">
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="rounded-md p-2 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
-              aria-label="Search"
+              className="rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
             >
               <Search className="h-5 w-5" />
             </button>
             <Link
               href="/wishlist"
-              className="relative rounded-md p-2 text-slate-900 transition-colors hover:bg-slate-100"
-              aria-label="Wishlist"
+              className="relative rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100"
             >
               <Heart className="h-5 w-5" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[10px] font-bold text-white">
-                {wishlistCount}
-              </span>
+              {wishlistCount > 0 && (
+                <span className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 text-[9px] font-bold text-white ring-1 ring-white">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/cart"
-              className="relative rounded-md p-2 text-slate-900 transition-colors hover:bg-slate-100"
-              aria-label="Shopping Cart"
+              className="group relative flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-white transition-all hover:bg-slate-800"
             >
-              <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+              <ShoppingCart className="h-4 w-4" />
+              <span className="hidden text-xs font-bold md:block">Cart</span>
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[9px] font-bold text-white">
                 {getItemCount()}
               </span>
             </Link>
-            <div className="hidden lg:block">
+            <div className="hidden lg:block ml-2">
               <AuthButtons />
             </div>
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-md p-2 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
-              aria-label="Menu"
+              className="rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -314,10 +327,36 @@ export function Header() {
 
                 <nav className="flex-1 overflow-y-auto px-4 py-4">
                   <div className="flex flex-col gap-1">
-                    {["Home", "Shop", "Credit Plans", "Wholesale"].map((item) => (
+                    <Link
+                      href="/"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
+                    >
+                      Home
+                    </Link>
+
+                    {/* Dynamic Categories for Mobile */}
+                    <div className="mt-2 px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Categories
+                    </div>
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/shop?category=${cat.slug}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 capitalize"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+
+                    <div className="mt-2 px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      More
+                    </div>
+                    {["All Products", "Credit", "Wholesale"].map((item) => (
                       <Link
                         key={item}
-                        href={item === "Home" ? "/" : `/${item.toLowerCase().replace(" ", "-")}`}
+                        href={`/${item.toLowerCase().replace(" ", "-")}`}
                         onClick={() => setMobileMenuOpen(false)}
                         className="rounded-md px-3 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
                       >

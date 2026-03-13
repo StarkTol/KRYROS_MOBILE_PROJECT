@@ -50,4 +50,8 @@ export class CreateProductDto {
   @IsArray()
   @ValidateIf((o) => Array.isArray(o.imageDataUrls))
   imageDataUrls?: string[];
+
+  @IsArray()
+  @IsOptional()
+  specifications?: { key: string; value: string }[];
 }

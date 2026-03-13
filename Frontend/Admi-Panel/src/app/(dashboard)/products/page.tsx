@@ -15,6 +15,7 @@ type Product = {
   flashSaleEnd?: string | null;
   category?: { id: string; name: string; slug: string };
   brand?: { id: number; name: string; slug: string };
+  specifications?: string | any[];
 };
 
 type Category = {
@@ -52,6 +53,7 @@ export default function ProductsPage() {
     allowCredit: false,
     creditMinimum: "",
     images: [] as string[],
+    specifications: [] as { key: string; value: string }[],
   });
   const [files, setFiles] = useState<File[]>([]);
   const [editItem, setEditItem] = useState<Product | null>(null);
@@ -66,6 +68,7 @@ export default function ProductsPage() {
     allowCredit: false,
     creditMinimum: "",
     images: [] as string[],
+    specifications: [] as { key: string; value: string }[],
   });
   const [editFiles, setEditFiles] = useState<File[]>([]);
 
@@ -254,6 +257,49 @@ export default function ProductsPage() {
                   />
                 )}
               </div>
+
+              {/* Specifications Section */}
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-slate-700 mb-2">Specifications (e.g., RAM: 8GB)</p>
+                <div className="space-y-2">
+                  {form.specifications.map((spec, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        placeholder="Key (e.g. RAM)"
+                        value={spec.key}
+                        onChange={(e) => {
+                          const newSpecs = [...form.specifications];
+                          newSpecs[idx].key = e.target.value;
+                          setForm({ ...form, specifications: newSpecs });
+                        }}
+                        className="admin-input flex-1"
+                      />
+                      <input
+                        placeholder="Value (e.g. 8GB)"
+                        value={spec.value}
+                        onChange={(e) => {
+                          const newSpecs = [...form.specifications];
+                          newSpecs[idx].value = e.target.value;
+                          setForm({ ...form, specifications: newSpecs });
+                        }}
+                        className="admin-input flex-1"
+                      />
+                      <button
+                        onClick={() => setForm({ ...form, specifications: form.specifications.filter((_, i) => i !== idx) })}
+                        className="text-red-500 p-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setForm({ ...form, specifications: [...form.specifications, { key: "", value: "" }] })}
+                    className="text-sm text-green-600 font-medium hover:underline"
+                  >
+                    + Add Specification
+                  </button>
+                </div>
+              </div>
             </div>
             <div>
               <div className="border rounded-lg p-4 bg-slate-50">
@@ -306,6 +352,7 @@ export default function ProductsPage() {
                         formData.append("isFeatured", String(form.isFeatured));
                         formData.append("allowCredit", String(form.allowCredit));
                         if (form.creditMinimum) formData.append("creditMinimum", String(Number(form.creditMinimum)));
+                        if (form.specifications.length > 0) formData.append("specifications", JSON.stringify(form.specifications));
                         // Recompress large files to blobs if needed for better size/quality tradeoff
                         const blobs = await Promise.all(
                           files.map(async (f) => {
@@ -344,6 +391,7 @@ export default function ProductsPage() {
                             isFeatured: form.isFeatured,
                             allowCredit: form.allowCredit,
                             creditMinimum: form.creditMinimum ? Number(form.creditMinimum) : undefined,
+                            specifications: form.specifications,
                             imageDataUrls: form.images,
                           };
                           res = await fetch("/internal/admin/products", {
@@ -372,6 +420,7 @@ export default function ProductsPage() {
                         isFeatured: form.isFeatured,
                         allowCredit: form.allowCredit,
                         creditMinimum: form.creditMinimum ? Number(form.creditMinimum) : undefined,
+                        specifications: form.specifications,
                         imageDataUrls: form.images,
                       };
                         res = await fetch("/internal/admin/products", {
@@ -565,6 +614,9 @@ export default function ProductsPage() {
                           isFeatured: !!p.isFeatured,
                           allowCredit: !!(p as any).allowCredit,
                           creditMinimum: String((p as any).creditMinimum ?? ""),
+                          specifications: typeof (p as any).specifications === 'string' 
+                            ? JSON.parse((p as any).specifications) 
+                            : (Array.isArray((p as any).specifications) ? (p as any).specifications : []),
                           images: [],
                         });
                         setEditFiles([]);
@@ -726,6 +778,49 @@ export default function ProductsPage() {
                   />
                 )}
               </div>
+
+              {/* Edit Specifications Section */}
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-slate-700 mb-2">Specifications</p>
+                <div className="space-y-2">
+                  {editForm.specifications.map((spec, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        placeholder="Key"
+                        value={spec.key}
+                        onChange={(e) => {
+                          const newSpecs = [...editForm.specifications];
+                          newSpecs[idx].key = e.target.value;
+                          setEditForm({ ...editForm, specifications: newSpecs });
+                        }}
+                        className="admin-input flex-1"
+                      />
+                      <input
+                        placeholder="Value"
+                        value={spec.value}
+                        onChange={(e) => {
+                          const newSpecs = [...editForm.specifications];
+                          newSpecs[idx].value = e.target.value;
+                          setEditForm({ ...editForm, specifications: newSpecs });
+                        }}
+                        className="admin-input flex-1"
+                      />
+                      <button
+                        onClick={() => setEditForm({ ...editForm, specifications: editForm.specifications.filter((_, i) => i !== idx) })}
+                        className="text-red-500 p-2"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => setEditForm({ ...editForm, specifications: [...editForm.specifications, { key: "", value: "" }] })}
+                    className="text-sm text-green-600 font-medium hover:underline"
+                  >
+                    + Add Specification
+                  </button>
+                </div>
+              </div>
             </div>
             <div>
               <div className="border rounded-lg p-4 bg-slate-50">
@@ -771,6 +866,7 @@ export default function ProductsPage() {
                         formData.append("isFeatured", String(editForm.isFeatured));
                         formData.append("allowCredit", String(editForm.allowCredit));
                         if (editForm.creditMinimum) formData.append("creditMinimum", String(Number(editForm.creditMinimum)));
+                        if (editForm.specifications.length > 0) formData.append("specifications", JSON.stringify(editForm.specifications));
                         formData.append("replaceImages", "true");
                         for (const f of editFiles) {
                           const recompressed = await compressImage(f, 2000, 0.9);
@@ -798,6 +894,7 @@ export default function ProductsPage() {
                             isFeatured: editForm.isFeatured,
                             allowCredit: editForm.allowCredit,
                             creditMinimum: editForm.creditMinimum ? Number(editForm.creditMinimum) : undefined,
+                            specifications: editForm.specifications,
                             ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
                           };
                           res = await fetch(`/internal/admin/products/${id}`, {
@@ -825,6 +922,7 @@ export default function ProductsPage() {
                           isFeatured: editForm.isFeatured,
                           allowCredit: editForm.allowCredit,
                           creditMinimum: editForm.creditMinimum ? Number(editForm.creditMinimum) : undefined,
+                          specifications: editForm.specifications,
                           ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
                         };
                         res = await fetch(`/internal/admin/products/${id}`, {

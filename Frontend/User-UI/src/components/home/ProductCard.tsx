@@ -245,20 +245,20 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
           </Button>
         </div>
 
-        {/* Action Buttons Overlay */}
-        <div className={`absolute bottom-3 left-3 right-3 flex flex-col gap-2 transition-transform duration-300 ${isHovered ? 'translate-y-0' : 'translate-y-[120%]'}`}>
+        {/* Action Buttons Overlay - Hidden on small screens, shown on hover for desktop */}
+        <div className={`absolute bottom-3 left-3 right-3 hidden flex-col gap-2 transition-transform duration-300 md:flex ${isHovered ? 'translate-y-0' : 'translate-y-[120%]'}`}>
           {product?.allowCredit && (
             <Button
-              className="w-full bg-blue-600 hover:bg-blue-700 text-xs py-1 h-8"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-xs py-1 h-8 shadow-lg"
               size="sm"
               onClick={() => router.push(`/credit?productId=${product.id}`)}
             >
               <CreditCard className="mr-2 h-3 w-3" />
-              Get on Installment
+              Installment
             </Button>
           )}
           <Button
-            className="w-full bg-green-500 hover:bg-green-600 text-xs py-1 h-8"
+            className="w-full bg-green-500 hover:bg-green-600 text-xs py-1 h-8 shadow-lg"
             size="sm"
             onClick={() => addItem(product)}
           >
@@ -297,39 +297,56 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
         </div>
 
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-lg font-bold text-slate-900">{formatPrice(Number(product?.price ?? 0))}</span>
-          {product?.originalPrice && (
-            <span className="text-sm text-slate-500 line-through">
-              {formatPrice(Number(product.originalPrice))}
-            </span>
-          )}
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-8 w-8 rounded-full"
-            onClick={async (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const id = product?.id;
-              if (!id) return;
-              if (!isAuthenticated) {
-                router.push("/login");
-                return;
-              }
-              if (isWishlisted) {
-                await wishlistApi.remove(id);
-                setIsWishlisted(false);
-              } else {
-                await wishlistApi.add(id);
-                setIsWishlisted(true);
-              }
-              if (typeof window !== "undefined") {
-                window.dispatchEvent(new Event("wishlist:changed"));
-              }
-            }}
-          >
-            <Heart className={`h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
-          </Button>
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-slate-900">{formatPrice(Number(product?.price ?? 0))}</span>
+            {product?.originalPrice && (
+              <span className="text-xs text-slate-400 line-through">
+                {formatPrice(Number(product.originalPrice))}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              className="h-9 w-9 rounded-full bg-green-500 text-white md:hidden shadow-sm hover:bg-green-600 transition-colors"
+              onClick={() => {
+                addItem(product);
+                toast({
+                  title: "Added to Cart",
+                  description: `${product.name} has been added.`,
+                });
+              }}
+            >
+              <ShoppingCart className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 rounded-full"
+              onClick={async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const id = product?.id;
+                if (!id) return;
+                if (!isAuthenticated) {
+                  router.push("/login");
+                  return;
+                }
+                if (isWishlisted) {
+                  await wishlistApi.remove(id);
+                  setIsWishlisted(false);
+                } else {
+                  await wishlistApi.add(id);
+                  setIsWishlisted(true);
+                }
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new Event("wishlist:changed"));
+                }
+              }}
+            >
+              <Heart className={`h-4 w-4 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

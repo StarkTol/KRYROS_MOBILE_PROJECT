@@ -241,6 +241,7 @@ export class ProductsService {
         isFeatured: data.isFeatured ?? false,
         allowCredit: data.allowCredit ?? false,
         creditMinimum: data.creditMinimum ?? null,
+        specifications: data.specifications ? JSON.stringify(data.specifications) : null,
       },
     });
 
@@ -312,6 +313,7 @@ export class ProductsService {
         isFeatured: data.isFeatured ?? false,
         allowCredit: data.allowCredit ?? false,
         creditMinimum: data.creditMinimum ?? null,
+        specifications: data.specifications ? JSON.stringify(data.specifications) : null,
       },
     });
 
@@ -407,6 +409,7 @@ export class ProductsService {
         creditMinimum: typeof data.creditMinimum === 'number' ? data.creditMinimum : undefined,
         categoryId: categoryId ?? undefined,
         brandId: brandId,
+        specifications: data.specifications ? JSON.stringify(data.specifications) : undefined,
       },
     });
 
