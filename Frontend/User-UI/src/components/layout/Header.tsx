@@ -10,6 +10,7 @@ import {
   User,
   Menu,
   X,
+  ChevronDown,
   Phone,
   Mail,
   MapPin,
@@ -22,6 +23,7 @@ import { AuthButtons } from "./AuthButtons"
 import { useCart } from "@/providers/CartProvider"
 import { wishlistApi, settingsApi, categoriesApi } from "@/lib/api"
 import { formatPrice } from "@/lib/utils"
+import { megaMenuCategories as staticMegaMenuCategories } from "@/lib/store-data"
 
 export function TopBar() {
   const [shippingConfig, setShippingConfig] = useState({ fee: 50, threshold: 5000 });
@@ -33,9 +35,9 @@ export function TopBar() {
   }, []);
 
   return (
-    <div className="bg-slate-900 text-white md:block hidden">
+    <div className="bg-kryros-dark text-primary-foreground md:block hidden">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 text-xs">
-        <div className="flex items-center gap-4">
+        <div className="hidden items-center gap-4 md:flex">
           <span className="flex items-center gap-1">
             <Phone className="h-3 w-3" />
             +260 966 423 719
@@ -45,8 +47,8 @@ export function TopBar() {
             kryrosmobile@gmail.com
           </span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1 text-green-400 font-bold">
+        <div className="flex w-full items-center justify-center gap-4 md:w-auto md:justify-end">
+          <span className="flex items-center gap-1 text-kryros-green font-bold">
             <Truck className="h-3 w-3" />
             Free Shipping Over {formatPrice(shippingConfig.threshold)}
           </span>
@@ -59,18 +61,21 @@ export function TopBar() {
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [megaMenuOpen, setMegaMenuOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [accountOpen, setAccountOpen] = useState(false)
   const [categories, setCategories] = useState<any[]>([])
-  const accountRef = useRef<HTMLDivElement>(null)
-  const { getItemCount } = useCart()
   const [wishlistCount, setWishlistCount] = useState<number>(0)
   const [shippingConfig, setShippingConfig] = useState({ fee: 50, threshold: 5000 });
+  
+  const megaMenuRef = useRef<HTMLDivElement>(null)
+  const accountRef = useRef<HTMLDivElement>(null)
+  const { getItemCount } = useCart()
 
   useEffect(() => {
     categoriesApi.getAll().then(res => {
-      if (res.data) setCategories(res.data.filter((c: any) => c.isActive !== false).slice(0, 5))
+      if (res.data) setCategories(res.data.filter((c: any) => c.isActive !== false))
     })
   }, [])
 
@@ -81,13 +86,16 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20)
+    const handleScroll = () => setIsScrolled(window.scrollY > 40)
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
+      if (megaMenuRef.current && !megaMenuRef.current.contains(event.target as Node)) {
+        setMegaMenuOpen(false)
+      }
       if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
         setAccountOpen(false)
       }
@@ -112,19 +120,8 @@ export function Header() {
     refresh()
     const handler = () => refresh()
     window.addEventListener('wishlist:changed', handler as any)
-    return () => { active = false }
+    return () => { active = false; window.removeEventListener('wishlist:changed', handler as any) }
   }, [])
-
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [mobileMenuOpen])
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -141,8 +138,8 @@ export function Header() {
   }, [mobileMenuOpen]);
 
   const suggestions = [
-    "iPhone 15 Pro Max",
-    "Samsung Galaxy S24",
+    "iPhone 16 Pro Max",
+    "Samsung Galaxy S25",
     "MacBook Pro",
     "iPad Pro",
     "AirPods Pro",
@@ -150,85 +147,143 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+      className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/95 shadow-md backdrop-blur-md"
-          : "bg-white border-b border-slate-100"
+          ? "bg-background/95 shadow-lg backdrop-blur-md"
+          : "bg-background border-b border-slate-100"
       }`}
     >
       {/* Mobile Promo Bar - Sticky with Header */}
-      <div className="bg-green-600 text-white py-1 px-4 text-center text-[10px] font-bold uppercase tracking-widest md:hidden">
+      <div className="bg-kryros-green text-white py-1 px-4 text-center text-[10px] font-bold uppercase tracking-widest md:hidden">
         Free Delivery Over {formatPrice(shippingConfig.threshold)}
       </div>
 
       <div className="mx-auto max-w-7xl px-4">
-        <div className={`flex items-center justify-between gap-4 transition-all duration-300 ${isScrolled ? 'h-14 lg:h-16' : 'h-16 lg:h-20'}`}>
+        <div className="flex h-16 items-center justify-between gap-4 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Logo size={isScrolled ? 30 : 36} />
+            <Logo size={isScrolled ? 32 : 38} />
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-1 lg:flex">
             <Link
               href="/"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               Home
             </Link>
-            
+            <div ref={megaMenuRef} className="relative">
+              <button
+                onMouseEnter={() => setMegaMenuOpen(true)}
+                onClick={() => setMegaMenuOpen(!megaMenuOpen)}
+                className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+              >
+                Categories
+                <ChevronDown
+                  className={`h-3.5 w-3.5 transition-transform ${megaMenuOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              <AnimatePresence>
+                {megaMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.2 }}
+                    onMouseLeave={() => setMegaMenuOpen(false)}
+                    className="absolute left-1/2 top-full mt-2 w-[640px] -translate-x-1/2 rounded-xl border border-border bg-card p-6 shadow-xl"
+                  >
+                    <div className="grid grid-cols-4 gap-6">
+                      {/* Column 1: Top Categories from DB */}
+                      <div>
+                        <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          Top Categories
+                        </h4>
+                        <ul className="flex flex-col gap-2">
+                          {categories.slice(0, 6).map((cat) => (
+                            <li key={cat.id}>
+                              <Link
+                                href={`/shop?category=${cat.slug}`}
+                                onClick={() => setMegaMenuOpen(false)}
+                                className="text-sm text-foreground transition-colors hover:text-kryros-green capitalize"
+                              >
+                                {cat.name}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      
+                      {/* Remaining Columns from static data */}
+                      {staticMegaMenuCategories.slice(0, 3).map((cat) => (
+                        <div key={cat.title}>
+                          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                            {cat.title}
+                          </h4>
+                          <ul className="flex flex-col gap-2">
+                            {cat.items.map((item) => (
+                              <li key={item.name}>
+                                <Link
+                                  href={item.href}
+                                  onClick={() => setMegaMenuOpen(false)}
+                                  className="text-sm text-foreground transition-colors hover:text-kryros-green"
+                                >
+                                  {item.name}
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 flex items-center gap-3 rounded-lg bg-kryros-green/10 p-4">
+                      <CreditCard className="h-5 w-5 text-kryros-green" />
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          Buy Now, Pay Later
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Flexible installment plans on all products over {formatPrice(100)}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <Link
               href="/shop"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               Shop
             </Link>
-
-            <Link
-              href="/all-products"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
-            >
-              All Products
-            </Link>
-
-            {/* Dynamic Categories */}
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/shop?category=${cat.slug}`}
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100 capitalize"
-              >
-                {cat.name}
-              </Link>
-            ))}
-
             <Link
               href="/credit"
-              className="rounded-md px-3 py-2 text-sm font-medium text-green-600 transition-colors hover:bg-green-50"
+              className="rounded-md px-3 py-2 text-sm font-medium text-kryros-green transition-colors hover:bg-kryros-green/10"
             >
-              Credit
+              Credit Plans
             </Link>
-
             <Link
               href="/wholesale"
-              className="rounded-md px-3 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-slate-100"
+              className="rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               Wholesale
             </Link>
           </nav>
 
           {/* Search Bar - Desktop */}
-          <div className="relative hidden flex-1 lg:block lg:max-w-xs xl:max-w-md">
+          <div className="relative hidden flex-1 lg:block lg:max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search products, brands..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={() => setTimeout(() => setSearchOpen(false), 200)}
-                className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all"
+                className="w-full rounded-lg border border-border bg-secondary py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-kryros-green focus:outline-none focus:ring-1 focus:ring-kryros-green"
               />
             </div>
             <AnimatePresence>
@@ -237,21 +292,21 @@ export function Header() {
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 4 }}
-                  className="absolute left-0 right-0 top-full mt-2 rounded-lg border border-slate-200 bg-white p-2 shadow-lg"
+                  className="absolute left-0 right-0 top-full mt-2 rounded-lg border border-border bg-card p-2 shadow-lg"
                 >
                   {suggestions.length > 0 ? (
                     suggestions.map((s) => (
                       <Link
                         key={s}
                         href={`/shop?q=${encodeURIComponent(s)}`}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-900 hover:bg-slate-100"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground hover:bg-secondary"
                       >
-                        <Search className="h-3.5 w-3.5 text-slate-400" />
+                        <Search className="h-3.5 w-3.5 text-muted-foreground" />
                         {s}
                       </Link>
                     ))
                   ) : (
-                    <p className="px-3 py-2 text-sm text-slate-500">
+                    <p className="px-3 py-2 text-sm text-muted-foreground">
                       No results found
                     </p>
                   )}
@@ -261,31 +316,33 @@ export function Header() {
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-1 md:gap-2">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
+              className="rounded-md p-2 text-foreground transition-colors hover:bg-secondary lg:hidden"
+              aria-label="Search"
             >
               <Search className="h-5 w-5" />
             </button>
             <Link
               href="/wishlist"
-              className="relative rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100"
+              className="relative rounded-md p-2 text-foreground transition-colors hover:bg-secondary"
+              aria-label="Wishlist"
             >
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 && (
-                <span className="absolute right-0.5 top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 text-[9px] font-bold text-white ring-1 ring-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-kryros-green text-[10px] font-bold text-accent-foreground">
                   {wishlistCount}
                 </span>
               )}
             </Link>
             <Link
               href="/cart"
-              className="group relative flex items-center gap-1.5 rounded-full bg-slate-900 px-3 py-1.5 text-white transition-all hover:bg-slate-800"
+              className="relative rounded-md p-2 text-foreground transition-colors hover:bg-secondary"
+              aria-label="Shopping Cart"
             >
-              <ShoppingCart className="h-4 w-4" />
-              <span className="hidden text-xs font-bold md:block">Cart</span>
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 text-[9px] font-bold text-white">
+              <ShoppingCart className="h-5 w-5" />
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-kryros-orange text-[10px] font-bold text-accent-foreground">
                 {getItemCount()}
               </span>
             </Link>
@@ -294,7 +351,8 @@ export function Header() {
             </div>
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="rounded-full p-1.5 text-slate-900 transition-colors hover:bg-slate-100 lg:hidden"
+              className="rounded-md p-2 text-foreground transition-colors hover:bg-secondary lg:hidden"
+              aria-label="Menu"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -303,15 +361,15 @@ export function Header() {
       </div>
 
       {/* Services bar */}
-      <div className="hidden border-t border-slate-200 lg:block">
+      <div className="hidden border-t border-border lg:block">
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-8 px-4 py-2">
           {[
-            { icon: Truck, text: "Free Shipping Over " + formatPrice(shippingConfig.threshold) },
+            { icon: Truck, text: `Free Shipping Over ${formatPrice(shippingConfig.threshold)}` },
             { icon: CreditCard, text: "Flexible Credit Plans" },
             { icon: Headset, text: "24/7 Support" },
           ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 text-xs text-slate-500">
-              <Icon className="h-3.5 w-3.5 text-green-500" />
+            <div key={text} className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Icon className="h-3.5 w-3.5 text-kryros-green" />
               <span>{text}</span>
             </div>
           ))}
@@ -337,77 +395,76 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-white shadow-2xl"
+              className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-card shadow-xl"
             >
-              {/* Sidebar Header */}
-              <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-100 px-5">
-                <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                  <Logo size={32} />
-                </Link>
-                <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-full p-2 text-slate-900 hover:bg-slate-100 transition-colors"
-                  aria-label="Close menu"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Sidebar Content (Scrollable) */}
-              <div className="flex-1 overflow-y-auto overscroll-contain px-2 py-4 scrollbar-none">
-                <nav className="flex flex-col gap-1">
-                  <Link
-                    href="/"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
-                  >
-                    Home
+              <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between border-b border-border px-4 py-4 h-16 shrink-0">
+                  <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kryros-green">
+                      <span className="text-sm font-bold text-accent-foreground">K</span>
+                    </div>
+                    <span className="text-lg font-bold text-foreground">KRYROS</span>
                   </Link>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="rounded-md p-1 text-foreground hover:bg-secondary"
+                    aria-label="Close menu"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
-                  <div className="mt-4 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Categories
+                {/* Mobile Search */}
+                <div className="border-b border-border px-4 py-3 shrink-0">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      className="w-full rounded-lg border border-border bg-secondary py-2 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-kryros-green focus:outline-none"
+                    />
                   </div>
-                  <div className="space-y-1">
+                </div>
+
+                <nav className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain">
+                  <div className="flex flex-col gap-1">
+                    {["Home", "Shop", "Credit Plans", "Wholesale"].map((item) => (
+                      <Link
+                        key={item}
+                        href={item === "Home" ? "/" : `/${item.toLowerCase().replace(" ", "-")}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                      >
+                        {item}
+                      </Link>
+                    ))}
+                    <hr className="my-2 border-border" />
+                    <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Categories
+                    </p>
                     {categories.map((cat) => (
                       <Link
                         key={cat.id}
                         href={`/shop?category=${cat.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 capitalize"
+                        className="rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary capitalize"
                       >
                         {cat.name}
                       </Link>
                     ))}
                   </div>
-
-                  <div className="mt-4 px-4 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                    Our Shop
-                  </div>
-                  <div className="space-y-1">
-                    {["Shop", "All Products", "Credit", "Wholesale"].map((item) => (
-                      <Link
-                        key={item}
-                        href={`/${item.toLowerCase().replace(" ", "-")}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center rounded-xl px-4 py-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-                      >
-                        {item}
-                      </Link>
-                    ))}
-                  </div>
                 </nav>
-              </div>
 
-              {/* Sidebar Footer (Sticky at bottom) */}
-              <div className="shrink-0 border-t border-slate-100 bg-slate-50/50 p-4">
-                <Link
-                  href="/dashboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-[0.98] shadow-lg shadow-slate-900/10"
-                >
-                  <User className="h-4 w-4" />
-                  My Account
-                </Link>
+                <div className="border-t border-border px-4 py-4 shrink-0 bg-card">
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-kryros-green py-3 text-sm font-bold text-accent-foreground transition-colors hover:bg-kryros-green/90 shadow-lg shadow-kryros-green/10"
+                  >
+                    <User className="h-4 w-4" />
+                    My Account
+                  </Link>
+                </div>
               </div>
             </motion.div>
           </div>
