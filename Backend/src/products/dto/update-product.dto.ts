@@ -1,4 +1,5 @@
 import { IsArray, IsBoolean, IsNumber, IsOptional, IsString, Min, ValidateIf } from 'class-validator';
+import { Type, Transform } from 'class-transformer';
 
 export class UpdateProductDto {
   @IsOptional()
@@ -12,6 +13,7 @@ export class UpdateProductDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Type(() => Number)
   price?: number;
 
   @IsOptional()
@@ -32,27 +34,33 @@ export class UpdateProductDto {
 
   @IsOptional()
   @IsNumber()
+  @Type(() => Number)
   brandId?: number;
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   isActive?: boolean;
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   isFeatured?: boolean;
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   allowCredit?: boolean;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Type(() => Number)
   creditMinimum?: number;
 
   @IsOptional()
   @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
   replaceImages?: boolean;
 
   @IsOptional()
@@ -62,5 +70,15 @@ export class UpdateProductDto {
 
   @IsArray()
   @IsOptional()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        return value;
+      }
+    }
+    return value;
+  })
   specifications?: { key: string; value: string }[];
 }

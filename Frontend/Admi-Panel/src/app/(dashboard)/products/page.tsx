@@ -373,77 +373,13 @@ export default function ProductsPage() {
                           formData.append("images", b);
                         }
                         res = await fetch("/internal/admin/products/upload", {
-                          method: "POST",
-                          body: formData,
-                        });
-                        if (!res.ok) {
-                          const token = getAdminToken();
-                          res = await fetch(`${API_BASE}/products/upload`, {
-                            method: "POST",
-                            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-                            body: formData,
-                          });
-                        }
-                        if (!res.ok) {
-                          const fallbackPayload = {
-                            name: form.name,
-                            sku: form.sku,
-                            price: Number(form.price),
-                            description: form.description,
-                            categorySlug: form.categorySlug || "general",
-                            brandId: form.brandId ? Number(form.brandId) : undefined,
-                            isActive: form.isActive,
-                            isFeatured: form.isFeatured,
-                            allowCredit: form.allowCredit,
-                            creditMinimum: form.creditMinimum ? Number(form.creditMinimum) : undefined,
-                            specifications: form.specifications,
-                            imageDataUrls: form.images,
-                          };
-                          res = await fetch("/internal/admin/products", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(fallbackPayload),
-                          });
-                          if (!res.ok) {
-                            const token = getAdminToken();
-                            res = await fetch(`${API_BASE}/products`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                              body: JSON.stringify(fallbackPayload),
-                            });
-                          }
-                        }
-                      } else {
-                        const payload = {
-                          name: form.name,
-                          sku: form.sku,
-                          price: Number(form.price),
-                          description: form.description,
-                        categorySlug: form.categorySlug || "general",
-                        brandId: form.brandId ? Number(form.brandId) : undefined,
-                        isActive: form.isActive,
-                        isFeatured: form.isFeatured,
-                        allowCredit: form.allowCredit,
-                        creditMinimum: form.creditMinimum ? Number(form.creditMinimum) : undefined,
-                        specifications: form.specifications,
-                        imageDataUrls: form.images,
-                      };
-                        res = await fetch("/internal/admin/products", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
-                        });
-                        if (!res.ok) {
-                          const token = getAdminToken();
-                          res = await fetch(`${API_BASE}/products`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                            body: JSON.stringify(payload),
-                          });
-                        }
-                      }
+                        method: "POST",
+                        body: formData,
+                      });
+                      
                       const body = await res.json().catch(() => ({}));
-                      if (!res.ok) throw new Error(body?.error || "Failed to create product");
+                      if (!res.ok) throw new Error(body?.error || body?.message || "Failed to create product");
+                      
                       setShowCreate(false);
                       setForm({
                         name: "",
@@ -461,8 +397,8 @@ export default function ProductsPage() {
                       });
                       setFiles([]);
                       await load();
-                    } catch (e) {
-                      alert(e instanceof Error ? e.message : "Failed to create product");
+                    } catch (e: any) {
+                      alert(e.message || "Failed to create product");
                     } finally {
                       setCreating(false);
                     }
@@ -887,77 +823,15 @@ export default function ProductsPage() {
                           formData.append("images", new File([blob], f.name.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg"), { type: "image/jpeg" }));
                         }
                         res = await fetch(`/internal/admin/products/${id}/upload`, { method: "POST", body: formData });
-                        if (!res.ok) {
-                          const token = getAdminToken();
-                          res = await fetch(`${API_BASE}/products/${id}/upload`, {
-                            method: "POST",
-                            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-                            body: formData
-                          });
-                        }
-                        if (!res.ok) {
-                          const fallbackPayload = {
-                            ...(editForm.name ? { name: editForm.name } : {}),
-                            ...(editForm.price ? { price: Number(editForm.price) } : {}),
-                            ...(editForm.description ? { description: editForm.description } : {}),
-                            ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
-                            ...(editForm.brandId ? { brandId: Number(editForm.brandId) } : {}),
-                            isActive: editForm.isActive,
-                            isFeatured: editForm.isFeatured,
-                            allowCredit: editForm.allowCredit,
-                            creditMinimum: editForm.creditMinimum ? Number(editForm.creditMinimum) : undefined,
-                            specifications: editForm.specifications,
-                            ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
-                          };
-                          res = await fetch(`/internal/admin/products/${id}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(fallbackPayload),
-                          });
-                          if (!res.ok) {
-                            const token = getAdminToken();
-                            res = await fetch(`${API_BASE}/products/${id}`, {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                              body: JSON.stringify(fallbackPayload),
-                            });
-                          }
-                        }
-                      } else {
-                        const payload: any = {
-                          ...(editForm.name ? { name: editForm.name } : {}),
-                          ...(editForm.price ? { price: Number(editForm.price) } : {}),
-                          ...(editForm.description ? { description: editForm.description } : {}),
-                          ...(editForm.categorySlug ? { categorySlug: editForm.categorySlug } : {}),
-                          ...(editForm.brandId ? { brandId: Number(editForm.brandId) } : {}),
-                          isActive: editForm.isActive,
-                          isFeatured: editForm.isFeatured,
-                          allowCredit: editForm.allowCredit,
-                          creditMinimum: editForm.creditMinimum ? Number(editForm.creditMinimum) : undefined,
-                          specifications: editForm.specifications,
-                          ...(editForm.images.length ? { imageDataUrls: editForm.images, replaceImages: true } : {}),
-                        };
-                        res = await fetch(`/internal/admin/products/${id}`, {
-                          method: "PUT",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(payload),
-                        });
-                        if (!res.ok) {
-                          const token = getAdminToken();
-                          res = await fetch(`${API_BASE}/products/${id}`, {
-                            method: "PUT",
-                            headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                            body: JSON.stringify(payload),
-                          });
-                        }
-                      }
+                      
                       const body = await res.json().catch(() => ({}));
-                      if (!res.ok) throw new Error(body?.error || "Failed to update product");
+                      if (!res.ok) throw new Error(body?.error || body?.message || "Failed to update product");
+                      
                       setEditItem(null);
                       setEditFiles([]);
                       await load();
-                    } catch (e) {
-                      alert(e instanceof Error ? e.message : "Failed to update product");
+                    } catch (e: any) {
+                      alert(e.message || "Failed to update product");
                     }
                   }}
                   className="btn-primary"
