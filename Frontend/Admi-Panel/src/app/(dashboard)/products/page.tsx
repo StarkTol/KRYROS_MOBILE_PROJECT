@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { API_BASE } from "@/lib/config";
 import { formatPrice } from "@/lib/utils";
-import { X } from "lucide-react";
+import { X, Package, Image as ImageIcon } from "lucide-react";
 
 type Product = {
   id: string;
