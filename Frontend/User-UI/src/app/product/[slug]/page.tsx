@@ -1,8 +1,11 @@
+'use client';
+
+import { useEffect, useState } from 'react'
 import { notFound } from 'next/navigation'
 import { formatPrice } from '@/lib/utils'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import { ShoppingCart, Heart, Shield, Truck, Clock, CreditCard } from 'lucide-react'
+import { ShoppingCart, Heart, Shield, Truck, Clock, CreditCard, ChevronLeft, ChevronRight } from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://kryrosbackend.onrender.com/api'
 
@@ -20,17 +23,40 @@ async function getProduct(slug: string) {
   return null
 }
 
-export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const product = await getProduct(params.slug)
+export default function ProductPage({ params }: { params: { slug: string } }) {
+  const [product, setProduct] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeImageIdx, setActiveImageIdx] = useState(0)
+
+  useEffect(() => {
+    getProduct(params.slug).then(data => {
+      setProduct(data)
+      setLoading(false)
+    })
+  }, [params.slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    )
+  }
+
   if (!product) {
     notFound()
   }
+
   const p = product
   const specifications = typeof p.specifications === 'string' 
     ? JSON.parse(p.specifications) 
     : (Array.isArray(p.specifications) ? p.specifications : [])
 
-  const mainImage = p.images?.[0]?.url || '/placeholder.jpg'
+  const images = p.images?.length > 0 ? p.images : [{ url: '/placeholder.jpg' }]
+  const mainImage = images[activeImageIdx]?.url || '/placeholder.jpg'
+
+  const nextImage = () => setActiveImageIdx((prev) => (prev + 1) % images.length)
+  const prevImage = () => setActiveImageIdx((prev) => (prev - 1 + images.length) % images.length)
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 md:py-12">
@@ -38,20 +64,50 @@ export default async function ProductPage({ params }: { params: { slug: string }
         <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
           {/* Left: Images */}
           <div className="space-y-4">
-            <div className="relative aspect-square overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+            <div className="group relative aspect-square overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               <Image
                 src={mainImage}
                 alt={p.name}
                 fill
-                className="object-contain p-4"
+                className="object-contain p-4 transition-transform duration-500"
                 priority
                 unoptimized={mainImage.startsWith('data:')}
               />
+              
+              {images.length > 1 && (
+                <>
+                  <button 
+                    onClick={prevImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-slate-800 shadow-md transition-all hover:bg-white hover:scale-110 opacity-0 group-hover:opacity-100"
+                  >
+                    <ChevronLeft className="h-6 w-6" />
+                  </button>
+                  <button 
+                    onClick={nextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-slate-800 shadow-md transition-all hover:bg-white hover:scale-110 opacity-0 group-hover:opacity-100"
+                  >
+                    <ChevronRight className="h-6 w-6" />
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
+                    {images.map((_: any, idx: number) => (
+                      <div 
+                        key={idx} 
+                        className={`h-1.5 rounded-full transition-all ${idx === activeImageIdx ? 'w-6 bg-green-500' : 'w-1.5 bg-slate-300'}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-            {p.images?.length > 1 && (
-              <div className="grid grid-cols-4 gap-4">
-                {p.images.map((img: any, idx: number) => (
-                  <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+            
+            {images.length > 1 && (
+              <div className="grid grid-cols-5 gap-4">
+                {images.map((img: any, idx: number) => (
+                  <button 
+                    key={idx} 
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`relative aspect-square overflow-hidden rounded-lg bg-white shadow-sm ring-2 transition-all ${idx === activeImageIdx ? 'ring-green-500 scale-105' : 'ring-slate-200 hover:ring-slate-300'}`}
+                  >
                     <Image 
                       src={img.url} 
                       alt={p.name} 
@@ -59,7 +115,7 @@ export default async function ProductPage({ params }: { params: { slug: string }
                       className="object-contain p-2" 
                       unoptimized={img.url.startsWith('data:')}
                     />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

@@ -447,6 +447,7 @@ export default function ProductsPage() {
           <table className="admin-table">
             <thead>
               <tr>
+                <th>Image</th>
                 <th>Name</th>
                 <th>SKU</th>
                 <th>Category</th>
@@ -465,6 +466,7 @@ export default function ProductsPage() {
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i} className="animate-pulse">
+                    <td><div className="h-10 w-10 bg-slate-100 rounded"></div></td>
                     <td><div className="h-4 bg-slate-100 rounded w-3/4"></div></td>
                     <td><div className="h-4 bg-slate-100 rounded w-1/2"></div></td>
                     <td><div className="h-4 bg-slate-100 rounded w-1/2"></div></td>
@@ -478,6 +480,19 @@ export default function ProductsPage() {
                 ))
               ) : (tab === "featured" ? products.filter(p => !!p.isFeatured) : tab === "flash" ? products.filter(p => !!(p as any).isFlashSale) : tab === "credit" ? products.filter(p => !!p.allowCredit) : products).map((p) => (
                 <tr key={p.id}>
+                  <td>
+                    <div className="h-12 w-12 rounded-lg overflow-hidden border bg-slate-50">
+                      {p.images && p.images[0] ? (
+                        <img 
+                          src={typeof p.images[0] === 'string' ? p.images[0] : (p.images[0] as any).url} 
+                          alt={p.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-[10px] text-slate-400">No image</div>
+                      )}
+                    </div>
+                  </td>
                   <td className="font-medium text-slate-900">{p.name}</td>
                   <td className="font-mono text-sm">{p.sku}</td>
                   <td>{p.category?.name || "—"}</td>
