@@ -9,7 +9,7 @@ export class CategoriesService {
     return this.prisma.category.findMany({
       include: {
         _count: {
-          select: { products: true }
+          select: { products: { where: { isActive: true } } }
         }
       },
       orderBy: { sortOrder: 'asc' },
@@ -21,7 +21,7 @@ export class CategoriesService {
       where: { isActive: true, showOnHome: true },
       include: {
         _count: {
-          select: { products: true }
+          select: { products: { where: { isActive: true } } }
         }
       },
       orderBy: { sortOrder: 'asc' },

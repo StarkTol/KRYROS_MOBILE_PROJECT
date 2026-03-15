@@ -201,14 +201,17 @@ export function Header() {
                           Top Categories
                         </h4>
                         <ul className="flex flex-col gap-2">
-                          {categories.slice(0, 6).map((cat) => (
+                          {categories.slice(0, 8).map((cat) => (
                             <li key={cat.id}>
                               <Link
                                 href={`/shop?category=${cat.slug}`}
                                 onClick={() => setMegaMenuOpen(false)}
-                                className="text-sm text-foreground transition-colors hover:text-kryros-green capitalize"
+                                className="text-sm text-foreground transition-colors hover:text-kryros-green capitalize flex items-center justify-between"
                               >
-                                {cat.name}
+                                <span>{cat.name}</span>
+                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full text-slate-500">
+                                  {cat._count?.products || 0}
+                                </span>
                               </Link>
                             </li>
                           ))}
@@ -216,26 +219,40 @@ export function Header() {
                       </div>
                       
                       {/* Remaining Columns from static data */}
-                      {staticMegaMenuCategories.slice(0, 3).map((cat) => (
-                        <div key={cat.title}>
-                          <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            {cat.title}
-                          </h4>
-                          <ul className="flex flex-col gap-2">
-                            {cat.items.map((item) => (
-                              <li key={item.name}>
-                                <Link
-                                  href={item.href}
-                                  onClick={() => setMegaMenuOpen(false)}
-                                  className="text-sm text-foreground transition-colors hover:text-kryros-green"
-                                >
-                                  {item.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
+                      {staticMegaMenuCategories.slice(0, 3).map((cat) => {
+                        // Find matching real categories to show counts if they exist
+                        return (
+                          <div key={cat.title}>
+                            <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              {cat.title}
+                            </h4>
+                            <ul className="flex flex-col gap-2">
+                              {cat.items.map((item) => {
+                                const realCat = categories.find(c => 
+                                  c.name.toLowerCase() === item.name.toLowerCase() || 
+                                  item.href.includes(`category=${c.slug}`)
+                                );
+                                return (
+                                  <li key={item.name}>
+                                    <Link
+                                      href={item.href}
+                                      onClick={() => setMegaMenuOpen(false)}
+                                      className="text-sm text-foreground transition-colors hover:text-kryros-green flex items-center justify-between"
+                                    >
+                                      <span>{item.name}</span>
+                                      {realCat && (
+                                        <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded-full text-slate-500">
+                                          {realCat._count?.products || 0}
+                                        </span>
+                                      )}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
                     <div className="mt-6 flex items-center gap-3 rounded-lg bg-kryros-green/10 p-4">
                       <CreditCard className="h-5 w-5 text-kryros-green" />
@@ -442,16 +459,21 @@ export function Header() {
                     <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Categories
                     </p>
-                    {categories.map((cat) => (
-                      <Link
-                        key={cat.id}
-                        href={`/shop?category=${cat.slug}`}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary capitalize"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
+                    <div className="space-y-1">
+                      {categories.map((cat) => (
+                        <Link
+                          key={cat.id}
+                          href={`/shop?category=${cat.slug}`}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center justify-between rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary capitalize"
+                        >
+                          <span>{cat.name}</span>
+                          <span className="text-[10px] bg-secondary-foreground/10 px-1.5 py-0.5 rounded-full">
+                            {cat._count?.products || 0}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </nav>
 

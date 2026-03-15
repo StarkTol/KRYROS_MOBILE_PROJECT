@@ -253,25 +253,22 @@ function CategoriesGridSection({ categories, sections, loading: externalLoading 
 
   // Prioritize categories with showOnHome flag set to true
   const displayCategories = useMemo(() => {
+    // Return empty array while loading
+    if (!categories || categories.length === 0) return []
+
     const homepageCats = categories.filter(c => c.showOnHome && c.isActive !== false)
     if (homepageCats.length > 0) {
       return homepageCats.map(c => ({
         ...c,
-        productCount: c.productCount ?? c._count?.products ?? 0
+        productCount: c._count?.products ?? 0
       }))
     }
-    // Fallback to legacy CMS config if no categories have showOnHome flag
-    if (cmsConfig && Array.isArray(cmsConfig.config?.items) && cmsConfig.config.items.length > 0) {
-      return cmsConfig.config.items.map((item: any) => {
-        const realCat = categories.find(c => c.slug === item.slug || c.name === item.name)
-        return {
-          ...item,
-          productCount: realCat?.productCount ?? realCat?._count?.products ?? 0
-        }
-      })
-    }
-    return categories.slice(0, 8)
-  }, [categories, cmsConfig])
+    
+    return categories.slice(0, 8).map(c => ({
+      ...c,
+      productCount: c._count?.products ?? 0
+    }))
+  }, [categories])
 
   const iconFor = (name: string) => {
     const n = (name || '').toLowerCase()
