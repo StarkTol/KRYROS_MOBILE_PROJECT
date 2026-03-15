@@ -475,7 +475,7 @@ export class ProductsService {
     }
   }
 
-  async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null }) {
+  async updateFlags(id: string, data: { isFeatured?: boolean; isFlashSale?: boolean; flashSaleEnd?: string | null; flashSalePrice?: number | null; allowCredit?: boolean }) {
     let flashSaleEndValue: Date | null | undefined = undefined;
     let flashSalePriceValue: number | undefined = undefined;
     if (typeof data.isFlashSale === 'boolean') {
@@ -498,6 +498,7 @@ export class ProductsService {
       data: {
         isFeatured: typeof data.isFeatured === 'boolean' ? data.isFeatured : undefined,
         isFlashSale: typeof data.isFlashSale === 'boolean' ? data.isFlashSale : undefined,
+        allowCredit: typeof data.allowCredit === 'boolean' ? data.allowCredit : undefined,
         flashSaleEnd: flashSaleEndValue,
         flashSalePrice: flashSalePriceValue,
       },

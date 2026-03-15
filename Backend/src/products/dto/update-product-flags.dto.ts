@@ -16,4 +16,8 @@ export class UpdateProductFlagsDto {
   @IsOptional()
   @IsNumber()
   flashSalePrice?: number | null;
+
+  @IsOptional()
+  @IsBoolean()
+  allowCredit?: boolean;
 }

@@ -13,6 +13,9 @@ type Product = {
   isActive?: boolean;
   isFeatured?: boolean;
   isFlashSale?: boolean;
+  allowCredit?: boolean;
+  creditMinimum?: number | string | null;
+  flashSalePrice?: number | null;
   flashSaleEnd?: string | null;
   category?: { id: string; name: string; slug: string };
   brand?: { id: number; name: string; slug: string };
@@ -38,7 +41,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingId, setSavingId] = useState<string | null>(null);
-  const [tab, setTab] = useState<"all" | "featured" | "flash">("all");
+  const [tab, setTab] = useState<"all" | "featured" | "flash" | "credit">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -492,6 +495,12 @@ export default function ProductsPage() {
         >
           Flash Sales
         </button>
+        <button
+          onClick={() => setTab("credit")}
+          className={`px-3 py-1.5 rounded ${tab === "credit" ? "bg-green-500 text-white" : "bg-slate-100 text-slate-700"}`}
+        >
+          Credit
+        </button>
       </div>
 
       <div className="admin-card overflow-hidden">
@@ -528,7 +537,7 @@ export default function ProductsPage() {
                     <td className="text-right"><div className="h-8 bg-slate-100 rounded-lg w-20 ml-auto"></div></td>
                   </tr>
                 ))
-              ) : (tab === "featured" ? products.filter(p => !!p.isFeatured) : tab === "flash" ? products.filter(p => !!(p as any).isFlashSale) : products).map((p) => (
+              ) : (tab === "featured" ? products.filter(p => !!p.isFeatured) : tab === "flash" ? products.filter(p => !!(p as any).isFlashSale) : tab === "credit" ? products.filter(p => !!p.allowCredit) : products).map((p) => (
                 <tr key={p.id}>
                   <td className="font-medium text-slate-900">{p.name}</td>
                   <td className="font-mono text-sm">{p.sku}</td>
@@ -540,13 +549,13 @@ export default function ProductsPage() {
                     <div className="flex flex-col items-center">
                       <input
                         type="checkbox"
-                        checked={!!(p as any).allowCredit}
+                        checked={!!p.allowCredit}
                         onChange={(e) => {
                           setProducts(prev => prev.map(x => x.id === p.id ? { ...x, allowCredit: e.target.checked } : x));
                         }}
                       />
-                      {(p as any).allowCredit && (p as any).creditMinimum && (
-                        <span className="text-[10px] text-slate-500">Min: {(p as any).creditMinimum}</span>
+                      {p.allowCredit && p.creditMinimum && (
+                        <span className="text-[10px] text-slate-500">Min: {p.creditMinimum}</span>
                       )}
                     </div>
                   </td>
@@ -653,7 +662,7 @@ export default function ProductsPage() {
                             ...(tab !== "flash" ? { isFeatured: !!p.isFeatured } : {}),
                             ...(tab !== "featured" ? { isFlashSale: !!p.isFlashSale } : {}),
                             ...(tab === "flash" ? { flashSaleEnd: p.flashSaleEnd } : {}),
-                            allowCredit: !!(p as any).allowCredit,
+                            allowCredit: !!p.allowCredit,
                           };
                           if (tab === "flash" && (p as any).flashSalePrice !== undefined) {
                             payload.flashSalePrice = (p as any).flashSalePrice;
