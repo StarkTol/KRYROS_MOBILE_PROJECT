@@ -22,10 +22,18 @@ type Brand = {
   logo?: string;
   website?: string;
   isActive: boolean;
+  categoryId?: string;
+  category?: { id: string; name: string };
+};
+
+type Category = {
+  id: string;
+  name: string;
 };
 
 export default function BrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,7 +47,19 @@ export default function BrandsPage() {
     description: "",
     website: "",
     isActive: true,
+    categoryId: "",
   });
+
+  const loadCategories = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/categories", { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to load categories");
+      const data = await res.json();
+      setCategories(data.filter((c: any) => c.isActive !== false));
+    } catch (e: any) {
+      console.error("Categories load error:", e.message);
+    }
+  }, []);
 
   const loadBrands = useCallback(async () => {
     setLoading(true);
@@ -73,7 +93,8 @@ export default function BrandsPage() {
 
   useEffect(() => {
     loadBrands();
-  }, [loadBrands]);
+    loadCategories();
+  }, [loadBrands, loadCategories]);
 
   const handleOpenModal = (brand?: Brand) => {
     if (brand) {
@@ -84,6 +105,7 @@ export default function BrandsPage() {
         description: brand.description || "",
         website: brand.website || "",
         isActive: brand.isActive,
+        categoryId: brand.categoryId || "",
       });
     } else {
       setEditingBrand(null);
@@ -93,6 +115,7 @@ export default function BrandsPage() {
         description: "",
         website: "",
         isActive: true,
+        categoryId: "",
       });
     }
     setShowModal(true);
@@ -185,6 +208,7 @@ export default function BrandsPage() {
             <thead>
               <tr className="text-xs font-semibold text-slate-500 uppercase tracking-wider bg-slate-50 border-b">
                 <th className="px-6 py-3">Brand Name</th>
+                <th className="px-6 py-3">Category</th>
                 <th className="px-6 py-3">Slug / Anchor</th>
                 <th className="px-6 py-3">Website</th>
                 <th className="px-6 py-3">Status</th>
@@ -215,6 +239,15 @@ export default function BrandsPage() {
                           )}
                         </div>
                       </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {brand.category ? (
+                        <span className="text-sm font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">
+                          {brand.category.name}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">Unassigned</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <code className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">#{brand.slug}</code>
@@ -305,6 +338,20 @@ export default function BrandsPage() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                   className="admin-input w-full h-24"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700">Category (Where it will be listed)</label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  className="admin-input w-full"
+                >
+                  <option value="">-- Select Category --</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-500">Brands under this category will show up in the Mega Menu</p>
               </div>
               <div className="flex items-center gap-2">
                 <input

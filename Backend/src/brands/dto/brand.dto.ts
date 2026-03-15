@@ -31,6 +31,11 @@ export class CreateBrandDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
 }
 
 export class UpdateBrandDto {
@@ -63,4 +68,9 @@ export class UpdateBrandDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
 }

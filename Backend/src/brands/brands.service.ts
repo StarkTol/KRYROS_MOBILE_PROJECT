@@ -37,6 +37,7 @@ export class BrandsService {
           description: dto.description || null,
           website: dto.website || null,
           isActive: dto.isActive !== undefined ? dto.isActive : true,
+          categoryId: dto.categoryId || null,
         },
       });
     } catch (e) {
@@ -48,6 +49,15 @@ export class BrandsService {
   async findAll() {
     try {
       return await this.prisma.brand.findMany({
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true
+            }
+          }
+        },
         orderBy: { name: 'asc' },
       });
     } catch (e) {
