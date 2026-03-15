@@ -432,6 +432,9 @@ export default function ProductsPage() {
                         isActive: true,
                         allowCredit: false,
                         creditMinimum: "",
+                        creditMessage: "",
+                        deliveryInfo: "",
+                        warrantyInfo: "",
                         images: [],
                         specifications: [],
                       });
