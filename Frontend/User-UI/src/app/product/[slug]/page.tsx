@@ -45,13 +45,20 @@ export default async function ProductPage({ params }: { params: { slug: string }
                 fill
                 className="object-contain p-4"
                 priority
+                unoptimized={mainImage.startsWith('data:')}
               />
             </div>
             {p.images?.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {p.images.map((img: any, idx: number) => (
                   <div key={idx} className="relative aspect-square overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
-                    <Image src={img.url} alt={p.name} fill className="object-contain p-2" />
+                    <Image 
+                      src={img.url} 
+                      alt={p.name} 
+                      fill 
+                      className="object-contain p-2" 
+                      unoptimized={img.url.startsWith('data:')}
+                    />
                   </div>
                 ))}
               </div>

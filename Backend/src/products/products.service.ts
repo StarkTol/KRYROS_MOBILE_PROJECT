@@ -43,7 +43,7 @@ export class ProductsService {
           include: {
             category: true,
             brand: true,
-            images: { where: { isPrimary: true } },
+            images: { orderBy: { sortOrder: 'asc' }, take: 1 },
             inventory: true,
           },
           orderBy: { createdAt: 'desc' },
@@ -61,7 +61,7 @@ export class ProductsService {
           take,
           include: {
             category: true,
-            images: { where: { isPrimary: true } },
+            images: { orderBy: { sortOrder: 'asc' }, take: 1 },
             inventory: true,
           },
           orderBy: { createdAt: 'desc' },
@@ -78,7 +78,7 @@ export class ProductsService {
       include: {
         category: true,
         brand: true,
-        images: true,
+        images: { orderBy: { sortOrder: 'asc' } },
         variants: true,
         inventory: true,
         reviews: { take: 10, orderBy: { createdAt: 'desc' } },
@@ -98,11 +98,11 @@ export class ProductsService {
       include: {
         category: true,
         brand: true,
-        images: true,
+        images: { orderBy: { sortOrder: 'asc' } },
         variants: true,
         inventory: true,
         relatedProducts: {
-          include: { related: { include: { images: { where: { isPrimary: true } } } } },
+          include: { related: { include: { images: { orderBy: { sortOrder: 'asc' }, take: 1 } } } } },
         },
       },
     });
@@ -120,7 +120,7 @@ export class ProductsService {
       take,
       include: {
         category: true,
-        images: { where: { isPrimary: true } },
+        images: { orderBy: { sortOrder: 'asc' }, take: 1 },
         inventory: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -137,7 +137,7 @@ export class ProductsService {
       },
       include: {
         category: true,
-        images: { where: { isPrimary: true } },
+        images: { orderBy: { sortOrder: 'asc' }, take: 1 },
         inventory: true,
       },
     });

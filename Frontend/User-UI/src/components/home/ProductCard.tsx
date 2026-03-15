@@ -22,7 +22,11 @@ interface ProductCardProps {
 function getProductImage(p: any): string {
   if (!p) return '/placeholder.jpg';
   if (typeof p.image === 'string') return p.image;
-  if (p.images && p.images.length > 0) return p.images[0].url;
+  if (Array.isArray(p.images) && p.images.length > 0) {
+    const first = p.images[0];
+    if (typeof first === 'string') return first;
+    if (first && typeof first.url === 'string') return first.url;
+  }
   return '/placeholder.jpg';
 }
 
@@ -77,6 +81,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             alt={product?.name || 'Product'}
             fill
             className="object-cover"
+            unoptimized={displayImage.startsWith('data:')}
           />
           {product?.isNew && (
             <span className="absolute left-2 top-2 rounded bg-blue-500 px-2 py-0.5 text-xs font-medium text-white">
@@ -186,6 +191,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             alt={product?.name || 'Product'}
             fill
             className="object-contain p-4 transition-transform duration-500 group-hover:scale-110"
+            unoptimized={displayImage.startsWith('data:')}
           />
         </Link>
         

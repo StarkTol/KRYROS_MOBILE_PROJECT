@@ -567,7 +567,7 @@ export default function ProductsPage() {
                           specifications: typeof (p as any).specifications === 'string' 
                             ? JSON.parse((p as any).specifications) 
                             : (Array.isArray((p as any).specifications) ? (p as any).specifications : []),
-                          images: [],
+                          images: Array.isArray(p.images) ? p.images.map((img: any) => img.url) : [],
                         });
                         setEditFiles([]);
                       }}
