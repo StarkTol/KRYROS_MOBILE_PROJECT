@@ -699,239 +699,298 @@ export default function ProductsPage() {
       </div>
     </div>
     {editItem && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Edit Product</h3>
-            <button onClick={() => setEditItem(null)} className="btn-secondary">Close</button>
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b shrink-0">
+            <h3 className="text-xl font-bold text-slate-900">Edit Product</h3>
+            <button onClick={() => setEditItem(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+              <X className="h-6 w-6" />
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <input
-                placeholder="Product name"
-                value={editForm.name}
-                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                className="admin-input w-full"
-              />
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="Price"
-                value={editForm.price}
-                onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
-                className="admin-input w-full"
-              />
-              <textarea
-                placeholder="Description"
-                value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                className="admin-input w-full h-24"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  value={editForm.categorySlug}
-                  onChange={(e) => setEditForm({ ...editForm, categorySlug: e.target.value })}
-                  className="admin-input w-full"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.slug}>{c.name}</option>
-                  ))}
-                </select>
-                <select
-                  value={editForm.brandId}
-                  onChange={(e) => setEditForm({ ...editForm, brandId: e.target.value })}
-                  className="admin-input w-full"
-                >
-                  <option value="">Select Brand (Optional)</option>
-                  {brands.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex items-center gap-4">
-                <label className="flex items-center gap-2 text-sm">
+          
+          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column: Basic Information */}
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Product Name</label>
                   <input
-                    type="checkbox"
-                    checked={editForm.isActive}
-                    onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                    placeholder="Product name"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="admin-input w-full"
                   />
-                  Active
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={editForm.isFeatured}
-                    onChange={(e) => setEditForm({ ...editForm, isFeatured: e.target.checked })}
-                  />
-                  Featured
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={editForm.allowCredit}
-                    onChange={(e) => setEditForm({ ...editForm, allowCredit: e.target.checked })}
-                  />
-                  Allow Credit
-                </label>
-                {editForm.allowCredit && (
-                  <>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Price (USD)</label>
                     <input
                       type="number"
                       min="0"
                       step="0.01"
-                      placeholder="Credit Minimum Amount"
-                      value={editForm.creditMinimum}
-                      onChange={(e) => setEditForm({ ...editForm, creditMinimum: e.target.value })}
+                      placeholder="Price"
+                      value={editForm.price}
+                      onChange={(e) => setEditForm({ ...editForm, price: e.target.value })}
                       className="admin-input w-full"
                     />
-                    <input
-                      placeholder="Custom Credit Message (e.g. $500/month)"
-                      value={editForm.creditMessage}
-                      onChange={(e) => setEditForm({ ...editForm, creditMessage: e.target.value })}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-1.5">Brand</label>
+                    <select
+                      value={editForm.brandId}
+                      onChange={(e) => setEditForm({ ...editForm, brandId: e.target.value })}
                       className="admin-input w-full"
-                    />
-                  </>
-                )}
-              </div>
+                    >
+                      <option value="">Select Brand (Optional)</option>
+                      {brands.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
 
-              {/* Shipping & Warranty Section */}
-              <div className="border-t pt-4 space-y-3">
-                <p className="text-sm font-medium text-slate-700">Display Information</p>
-                <input
-                  placeholder="Delivery Info (e.g. Fast Delivery - Lusaka)"
-                  value={editForm.deliveryInfo}
-                  onChange={(e) => setEditForm({ ...editForm, deliveryInfo: e.target.value })}
-                  className="admin-input w-full"
-                />
-                <input
-                  placeholder="Warranty Info (e.g. 1 Year Warranty)"
-                  value={editForm.warrantyInfo}
-                  onChange={(e) => setEditForm({ ...editForm, warrantyInfo: e.target.value })}
-                  className="admin-input w-full"
-                />
-              </div>
-
-              {/* Specifications Section */}
-              <div className="border-t pt-4">
-                <p className="text-sm font-medium text-slate-700 mb-2">Specifications</p>
-                <div className="space-y-2">
-                  {editForm.specifications.map((spec, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <input
-                        placeholder="Key"
-                        value={spec.key}
-                        onChange={(e) => {
-                          const newSpecs = [...editForm.specifications];
-                          newSpecs[idx].key = e.target.value;
-                          setEditForm({ ...editForm, specifications: newSpecs });
-                        }}
-                        className="admin-input flex-1"
-                      />
-                      <input
-                        placeholder="Value"
-                        value={spec.value}
-                        onChange={(e) => {
-                          const newSpecs = [...editForm.specifications];
-                          newSpecs[idx].value = e.target.value;
-                          setEditForm({ ...editForm, specifications: newSpecs });
-                        }}
-                        className="admin-input flex-1"
-                      />
-                      <button
-                        onClick={() => setEditForm({ ...editForm, specifications: editForm.specifications.filter((_, i) => i !== idx) })}
-                        className="text-red-500 p-2"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    onClick={() => setEditForm({ ...editForm, specifications: [...editForm.specifications, { key: "", value: "" }] })}
-                    className="text-sm text-green-600 font-medium hover:underline"
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Category</label>
+                  <select
+                    value={editForm.categorySlug}
+                    onChange={(e) => setEditForm({ ...editForm, categorySlug: e.target.value })}
+                    className="admin-input w-full"
                   >
-                    + Add Specification
-                  </button>
+                    <option value="">Select Category</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.slug}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Description</label>
+                  <textarea
+                    placeholder="Description"
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="admin-input w-full h-32"
+                  />
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-4">
+                  <p className="text-sm font-bold text-slate-800 border-b pb-2">Product Status & Options</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editForm.isActive}
+                        onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })}
+                        className="w-4 h-4 text-green-500 rounded"
+                      />
+                      Active on Site
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editForm.isFeatured}
+                        onChange={(e) => setEditForm({ ...editForm, isFeatured: e.target.checked })}
+                        className="w-4 h-4 text-green-500 rounded"
+                      />
+                      Featured Product
+                    </label>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <label className="flex items-center gap-2 text-sm font-medium cursor-pointer mb-3">
+                      <input
+                        type="checkbox"
+                        checked={editForm.allowCredit}
+                        onChange={(e) => setEditForm({ ...editForm, allowCredit: e.target.checked })}
+                        className="w-4 h-4 text-green-500 rounded"
+                      />
+                      Enable Installments / Credit
+                    </label>
+                    {editForm.allowCredit && (
+                      <div className="grid grid-cols-1 gap-3 pl-6 border-l-2 border-green-200">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="Min Monthly Payment"
+                          value={editForm.creditMinimum}
+                          onChange={(e) => setEditForm({ ...editForm, creditMinimum: e.target.value })}
+                          className="admin-input w-full"
+                        />
+                        <input
+                          placeholder="Custom Message (e.g. $500/month)"
+                          value={editForm.creditMessage}
+                          onChange={(e) => setEditForm({ ...editForm, creditMessage: e.target.value })}
+                          className="admin-input w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 space-y-3">
+                  <p className="text-sm font-bold text-blue-800 border-b border-blue-200 pb-2">Display Badges</p>
+                  <input
+                    placeholder="Delivery Text (e.g. Fast Delivery - Lusaka)"
+                    value={editForm.deliveryInfo}
+                    onChange={(e) => setEditForm({ ...editForm, deliveryInfo: e.target.value })}
+                    className="admin-input w-full bg-white"
+                  />
+                  <input
+                    placeholder="Warranty Text (e.g. 1 Year Warranty)"
+                    value={editForm.warrantyInfo}
+                    onChange={(e) => setEditForm({ ...editForm, warrantyInfo: e.target.value })}
+                    className="admin-input w-full bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column: Media & Specifications */}
+              <div className="space-y-8">
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">Product Images</label>
+                  <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 bg-slate-50 text-center">
+                    <input
+                      type="file"
+                      id="edit-images"
+                      multiple
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        const previews = await Promise.all(files.map((f) => compressImage(f, 1800, 0.9)));
+                        setEditForm((prev) => ({ ...prev, images: previews }));
+                        setEditFiles(files);
+                      }}
+                    />
+                    <label htmlFor="edit-images" className="cursor-pointer">
+                      <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm mb-2 text-slate-400">
+                        <Package className="h-6 w-6" />
+                      </div>
+                      <p className="text-sm font-medium text-slate-600">Click to upload new images</p>
+                      <p className="text-xs text-slate-400 mt-1">Supports JPG, PNG (Max 5MB each)</p>
+                    </label>
+
+                    {editForm.images.length > 0 && (
+                      <div className="mt-6 grid grid-cols-3 gap-3">
+                        {editForm.images.map((src, i) => (
+                          <div key={i} className="group relative aspect-square rounded-lg overflow-hidden border bg-white shadow-sm">
+                            <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <span className="text-[10px] text-white font-bold uppercase tracking-wider">
+                                {i === 0 ? 'Primary' : `Image ${i + 1}`}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-semibold text-slate-700">Specifications</label>
+                    <button
+                      onClick={() => setEditForm({ ...editForm, specifications: [...editForm.specifications, { key: "", value: "" }] })}
+                      className="text-xs bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-green-600 transition-colors"
+                    >
+                      + Add New Spec
+                    </button>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                    {editForm.specifications.length === 0 ? (
+                      <p className="text-xs text-slate-400 text-center py-4 italic">No specifications added yet.</p>
+                    ) : (
+                      editForm.specifications.map((spec, idx) => (
+                        <div key={idx} className="flex gap-2 items-start animate-in fade-in slide-in-from-top-1">
+                          <input
+                            placeholder="Key (e.g. RAM)"
+                            value={spec.key}
+                            onChange={(e) => {
+                              const newSpecs = [...editForm.specifications];
+                              newSpecs[idx].key = e.target.value;
+                              setEditForm({ ...editForm, specifications: newSpecs });
+                            }}
+                            className="admin-input flex-1 text-sm h-10"
+                          />
+                          <input
+                            placeholder="Value (e.g. 8GB)"
+                            value={spec.value}
+                            onChange={(e) => {
+                              const newSpecs = [...editForm.specifications];
+                              newSpecs[idx].value = e.target.value;
+                              setEditForm({ ...editForm, specifications: newSpecs });
+                            }}
+                            className="admin-input flex-1 text-sm h-10"
+                          />
+                          <button
+                            onClick={() => setEditForm({ ...editForm, specifications: editForm.specifications.filter((_, i) => i !== idx) })}
+                            className="text-slate-400 hover:text-red-500 p-2 transition-colors"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            <div>
-              <div className="border rounded-lg p-4 bg-slate-50">
-                <p className="text-sm font-medium text-slate-700">Images</p>
-                <p className="text-xs text-slate-500 mb-2">Upload new images to replace or add.</p>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const files = Array.from(e.target.files || []);
-                    const previews = await Promise.all(files.map((f) => compressImage(f, 1800, 0.9)));
-                    setEditForm((prev) => ({ ...prev, images: previews }));
-                    setEditFiles(files);
-                  }}
-                />
-                {editForm.images.length > 0 && (
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {editForm.images.map((src, i) => (
-                      <div key={i} className="aspect-square rounded-md overflow-hidden border bg-white">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={async () => {
-                    if (!editItem) return;
-                    try {
-                      const id = editItem.id;
-                      let res;
-                      const formData = new FormData();
-                      if (editForm.name) formData.append("name", editForm.name);
-                      if (editForm.price) formData.append("price", String(Number(editForm.price)));
-                      if (editForm.description) formData.append("description", editForm.description);
-                      if (editForm.categorySlug) formData.append("categorySlug", editForm.categorySlug);
-                      if (editForm.brandId) formData.append("brandId", String(editForm.brandId));
-                      formData.append("isActive", String(editForm.isActive));
-                      formData.append("isFeatured", String(editForm.isFeatured));
-                      formData.append("allowCredit", String(editForm.allowCredit));
-                      if (editForm.creditMinimum) formData.append("creditMinimum", String(Number(editForm.creditMinimum)));
-                      if (editForm.creditMessage) formData.append("creditMessage", editForm.creditMessage);
-                      if (editForm.deliveryInfo) formData.append("deliveryInfo", editForm.deliveryInfo);
-                      if (editForm.warrantyInfo) formData.append("warrantyInfo", editForm.warrantyInfo);
-                      if (editForm.specifications.length > 0) formData.append("specifications", JSON.stringify(editForm.specifications));
+          </div>
 
-                      if (editFiles.length > 0) {
-                        formData.append("replaceImages", "true");
-                        for (const f of editFiles) {
-                          const recompressed = await compressImage(f, 2000, 0.9);
-                          const resp = await fetch(recompressed);
-                          const blob = await resp.blob();
-                          formData.append("images", new File([blob], f.name.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg"), { type: "image/jpeg" }));
-                        }
-                      }
+          <div className="p-6 border-t bg-slate-50 flex justify-end items-center gap-3 shrink-0 rounded-b-xl">
+            <button onClick={() => setEditItem(null)} className="px-6 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-900 transition-colors">
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                if (!editItem) return;
+                try {
+                  const id = editItem.id;
+                  let res;
+                  const formData = new FormData();
+                  if (editForm.name) formData.append("name", editForm.name);
+                  if (editForm.price) formData.append("price", String(Number(editForm.price)));
+                  if (editForm.description) formData.append("description", editForm.description);
+                  if (editForm.categorySlug) formData.append("categorySlug", editForm.categorySlug);
+                  if (editForm.brandId) formData.append("brandId", String(editForm.brandId));
+                  formData.append("isActive", String(editForm.isActive));
+                  formData.append("isFeatured", String(editForm.isFeatured));
+                  formData.append("allowCredit", String(editForm.allowCredit));
+                  if (editForm.creditMinimum) formData.append("creditMinimum", String(Number(editForm.creditMinimum)));
+                  if (editForm.creditMessage) formData.append("creditMessage", editForm.creditMessage);
+                  if (editForm.deliveryInfo) formData.append("deliveryInfo", editForm.deliveryInfo);
+                  if (editForm.warrantyInfo) formData.append("warrantyInfo", editForm.warrantyInfo);
+                  if (editForm.specifications.length > 0) formData.append("specifications", JSON.stringify(editForm.specifications));
 
-                      res = await fetch(`/internal/admin/products/${id}/upload`, { method: "POST", body: formData });
-                      
-                      const body = await res.json().catch(() => ({}));
-                      if (!res.ok) throw new Error(body?.error || body?.message || "Failed to update product");
-                      
-                      setEditItem(null);
-                      setEditFiles([]);
-                      await load();
-                    } catch (e: any) {
-                      alert(e.message || "Failed to update product");
+                  if (editFiles.length > 0) {
+                    formData.append("replaceImages", "true");
+                    for (const f of editFiles) {
+                      const recompressed = await compressImage(f, 2000, 0.9);
+                      const resp = await fetch(recompressed);
+                      const blob = await resp.blob();
+                      formData.append("images", new File([blob], f.name.replace(/\.(png|jpg|jpeg|webp)$/i, ".jpg"), { type: "image/jpeg" }));
                     }
-                  }}
-                  className="btn-primary"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </div>
+                  }
+
+                  res = await fetch(`/internal/admin/products/${id}/upload`, { method: "POST", body: formData });
+                  
+                  const body = await res.json().catch(() => ({}));
+                  if (!res.ok) throw new Error(body?.error || body?.message || "Failed to update product");
+                  
+                  setEditItem(null);
+                  setEditFiles([]);
+                  await load();
+                } catch (e: any) {
+                  alert(e.message || "Failed to update product");
+                }
+              }}
+              className="bg-green-500 text-white px-8 py-2.5 rounded-lg font-bold hover:bg-green-600 shadow-lg shadow-green-500/20 transition-all"
+            >
+              Save Changes
+            </button>
           </div>
         </div>
       </div>
