@@ -394,7 +394,7 @@ export function Header() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] flex-col bg-card shadow-xl"
             >
-              <div className="flex h-full flex-col">
+              <div className="flex h-full flex-col overflow-hidden">
                 <div className="flex items-center justify-between border-b border-border px-4 py-4 h-16 shrink-0">
                   <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-kryros-green">
@@ -407,12 +407,11 @@ export function Header() {
                     className="rounded-md p-1 text-foreground hover:bg-secondary"
                     aria-label="Close menu"
                   >
-                    <X className="h-5 w-5" />
+                    <X className="h-6 w-6" />
                   </button>
                 </div>
 
-                {/* Mobile Search */}
-                <div className="border-b border-border px-4 py-3 shrink-0">
+                <div className="px-4 py-4 border-b border-border shrink-0">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <input
@@ -423,7 +422,7 @@ export function Header() {
                   </div>
                 </div>
 
-                <nav className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain">
+                <nav className="flex-1 overflow-y-auto px-4 py-4 overscroll-contain custom-scrollbar">
                   <div className="flex flex-col gap-1">
                     {["Home", "Shop", "Credit Plans", "Wholesale"].map((item) => (
                       <Link
@@ -439,7 +438,7 @@ export function Header() {
                     <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       Categories
                     </p>
-                    <div className="space-y-1">
+                    <div className="space-y-1 pb-4">
                       {categories.map((cat) => (
                         <div key={cat.id} className="space-y-1">
                           <Link
@@ -473,11 +472,11 @@ export function Header() {
                   </div>
                 </nav>
 
-                <div className="border-t border-border px-4 py-4 shrink-0 bg-card">
+                <div className="border-t border-border px-4 py-6 shrink-0 bg-card mt-auto shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)]">
                   <Link
                     href="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-kryros-green py-3 text-sm font-bold text-accent-foreground transition-colors hover:bg-kryros-green/90 shadow-lg shadow-kryros-green/10"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-kryros-green py-3.5 text-sm font-bold text-accent-foreground transition-colors hover:bg-kryros-green/90 shadow-lg shadow-kryros-green/20"
                   >
                     <User className="h-4 w-4" />
                     My Account
