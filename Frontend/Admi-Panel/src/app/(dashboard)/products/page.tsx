@@ -15,6 +15,9 @@ type Product = {
   isFlashSale?: boolean;
   allowCredit?: boolean;
   creditMinimum?: number | string | null;
+  creditMessage?: string | null;
+  deliveryInfo?: string | null;
+  warrantyInfo?: string | null;
   flashSalePrice?: number | null;
   flashSaleEnd?: string | null;
   category?: { id: string; name: string; slug: string };
@@ -57,6 +60,9 @@ export default function ProductsPage() {
     isActive: true,
     allowCredit: false,
     creditMinimum: "",
+    creditMessage: "",
+    deliveryInfo: "",
+    warrantyInfo: "",
     images: [] as string[],
     specifications: [] as { key: string; value: string }[],
   });
@@ -72,6 +78,9 @@ export default function ProductsPage() {
     isFeatured: false,
     allowCredit: false,
     creditMinimum: "",
+    creditMessage: "",
+    deliveryInfo: "",
+    warrantyInfo: "",
     images: [] as string[],
     specifications: [] as { key: string; value: string }[],
   });
@@ -252,16 +261,41 @@ export default function ProductsPage() {
                   Allow Credit
                 </label>
                 {form.allowCredit && (
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Credit Minimum"
-                    value={form.creditMinimum}
-                    onChange={(e) => setForm({ ...form, creditMinimum: e.target.value })}
-                    className="admin-input w-full"
-                  />
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Credit Minimum Amount"
+                      value={form.creditMinimum}
+                      onChange={(e) => setForm({ ...form, creditMinimum: e.target.value })}
+                      className="admin-input w-full"
+                    />
+                    <input
+                      placeholder="Custom Credit Message (e.g. $500/month)"
+                      value={form.creditMessage}
+                      onChange={(e) => setForm({ ...form, creditMessage: e.target.value })}
+                      className="admin-input w-full"
+                    />
+                  </>
                 )}
+              </div>
+
+              {/* Shipping & Warranty Section */}
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-sm font-medium text-slate-700">Display Information</p>
+                <input
+                  placeholder="Delivery Info (e.g. Fast Delivery - Lusaka)"
+                  value={form.deliveryInfo}
+                  onChange={(e) => setForm({ ...form, deliveryInfo: e.target.value })}
+                  className="admin-input w-full"
+                />
+                <input
+                  placeholder="Warranty Info (e.g. 1 Year Warranty)"
+                  value={form.warrantyInfo}
+                  onChange={(e) => setForm({ ...form, warrantyInfo: e.target.value })}
+                  className="admin-input w-full"
+                />
               </div>
 
               {/* Specifications Section */}
@@ -357,6 +391,9 @@ export default function ProductsPage() {
                       formData.append("isFeatured", String(form.isFeatured));
                       formData.append("allowCredit", String(form.allowCredit));
                       if (form.creditMinimum) formData.append("creditMinimum", String(Number(form.creditMinimum)));
+                      if (form.creditMessage) formData.append("creditMessage", form.creditMessage);
+                      if (form.deliveryInfo) formData.append("deliveryInfo", form.deliveryInfo);
+                      if (form.warrantyInfo) formData.append("warrantyInfo", form.warrantyInfo);
                       if (form.specifications.length > 0) formData.append("specifications", JSON.stringify(form.specifications));
 
                       if (files.length > 0) {
@@ -580,6 +617,9 @@ export default function ProductsPage() {
                           isFeatured: !!p.isFeatured,
                           allowCredit: !!p.allowCredit,
                           creditMinimum: String(p.creditMinimum ?? ""),
+                          creditMessage: p.creditMessage || "",
+                          deliveryInfo: p.deliveryInfo || "",
+                          warrantyInfo: p.warrantyInfo || "",
                           specifications: typeof (p as any).specifications === 'string' 
                             ? JSON.parse((p as any).specifications) 
                             : (Array.isArray((p as any).specifications) ? (p as any).specifications : []),
@@ -733,19 +773,44 @@ export default function ProductsPage() {
                   Allow Credit
                 </label>
                 {editForm.allowCredit && (
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="Credit Minimum"
-                    value={editForm.creditMinimum}
-                    onChange={(e) => setEditForm({ ...editForm, creditMinimum: e.target.value })}
-                    className="admin-input w-full"
-                  />
+                  <>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Credit Minimum Amount"
+                      value={editForm.creditMinimum}
+                      onChange={(e) => setEditForm({ ...editForm, creditMinimum: e.target.value })}
+                      className="admin-input w-full"
+                    />
+                    <input
+                      placeholder="Custom Credit Message (e.g. $500/month)"
+                      value={editForm.creditMessage}
+                      onChange={(e) => setEditForm({ ...editForm, creditMessage: e.target.value })}
+                      className="admin-input w-full"
+                    />
+                  </>
                 )}
               </div>
 
-              {/* Edit Specifications Section */}
+              {/* Shipping & Warranty Section */}
+              <div className="border-t pt-4 space-y-3">
+                <p className="text-sm font-medium text-slate-700">Display Information</p>
+                <input
+                  placeholder="Delivery Info (e.g. Fast Delivery - Lusaka)"
+                  value={editForm.deliveryInfo}
+                  onChange={(e) => setEditForm({ ...editForm, deliveryInfo: e.target.value })}
+                  className="admin-input w-full"
+                />
+                <input
+                  placeholder="Warranty Info (e.g. 1 Year Warranty)"
+                  value={editForm.warrantyInfo}
+                  onChange={(e) => setEditForm({ ...editForm, warrantyInfo: e.target.value })}
+                  className="admin-input w-full"
+                />
+              </div>
+
+              {/* Specifications Section */}
               <div className="border-t pt-4">
                 <p className="text-sm font-medium text-slate-700 mb-2">Specifications</p>
                 <div className="space-y-2">
@@ -831,6 +896,9 @@ export default function ProductsPage() {
                       formData.append("isFeatured", String(editForm.isFeatured));
                       formData.append("allowCredit", String(editForm.allowCredit));
                       if (editForm.creditMinimum) formData.append("creditMinimum", String(Number(editForm.creditMinimum)));
+                      if (editForm.creditMessage) formData.append("creditMessage", editForm.creditMessage);
+                      if (editForm.deliveryInfo) formData.append("deliveryInfo", editForm.deliveryInfo);
+                      if (editForm.warrantyInfo) formData.append("warrantyInfo", editForm.warrantyInfo);
                       if (editForm.specifications.length > 0) formData.append("specifications", JSON.stringify(editForm.specifications));
 
                       if (editFiles.length > 0) {

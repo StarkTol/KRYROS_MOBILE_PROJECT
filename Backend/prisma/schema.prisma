@@ -178,6 +178,9 @@ model Product {
   flashSaleEnd      DateTime?
   allowCredit       Boolean   @default(false)
   creditMinimum     Decimal?  @db.Decimal(10, 2)
+  creditMessage     String?   @db.Text
+  deliveryInfo      String?   @db.Text
+  warrantyInfo      String?   @db.Text
   metaTitle         String?
   metaDescription   String?
   metaKeywords      String?

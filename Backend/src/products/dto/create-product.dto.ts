@@ -54,6 +54,18 @@ export class CreateProductDto {
   @Type(() => Number)
   creditMinimum?: number;
 
+  @IsString()
+  @IsOptional()
+  creditMessage?: string;
+
+  @IsString()
+  @IsOptional()
+  deliveryInfo?: string;
+
+  @IsString()
+  @IsOptional()
+  warrantyInfo?: string;
+
   @IsArray()
   @ValidateIf((o) => Array.isArray(o.imageDataUrls))
   @IsOptional()
