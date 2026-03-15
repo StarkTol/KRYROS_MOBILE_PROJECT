@@ -73,11 +73,18 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
   const importantKeys = ['ram', 'storage', 'memory', 'cpu', 'processor', 'display', 'screen', 'size', 'capacity'];
   let displaySpecs = specs.filter((s: any) => 
     importantKeys.some(k => s.key?.toLowerCase().includes(k))
-  ).slice(0, 2);
+  ).map((s: any) => ({
+    ...s,
+    // Shorten very long values (e.g., screen details) to keep the card clean
+    value: s.value.length > 20 ? s.value.split(',')[0].slice(0, 20) + (s.value.length > 20 ? '...' : '') : s.value
+  })).slice(0, 2);
 
   // If no "important" specs found, just take the first two available
   if (displaySpecs.length === 0 && specs.length > 0) {
-    displaySpecs = specs.slice(0, 2);
+    displaySpecs = specs.map((s: any) => ({
+      ...s,
+      value: s.value.length > 20 ? s.value.slice(0, 20) + '...' : s.value
+    })).slice(0, 2);
   }
   
   const discount = product?.originalPrice 
@@ -122,9 +129,9 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             
             {/* Quick Specs for List View */}
             {displaySpecs.length > 0 && (
-              <div className="mt-1.5 flex flex-wrap gap-2">
+              <div className="mt-1.5 flex flex-wrap gap-2 min-h-[28px]">
                 {displaySpecs.map((spec: any, idx: number) => (
-                  <span key={idx} className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600">
+                  <span key={idx} className="inline-flex items-center rounded-md bg-slate-100 px-3 py-1 text-[10px] font-semibold text-slate-600 border border-slate-200">
                     {spec.value}
                   </span>
                 ))}
@@ -132,7 +139,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
             )}
 
             <div className="mt-2 flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
+              {[...Array(5)].map((StarIcon, i) => (
                 <Star
                   key={i}
                   className={`h-4 w-4 ${
@@ -239,7 +246,7 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1 min-h-[220px]">
         <div className="flex justify-between items-start">
           <p className="text-xs text-slate-500">{displayBrand}</p>
           {product?.allowCredit && (
@@ -256,9 +263,9 @@ export function ProductCard({ product, viewMode = "grid" }: ProductCardProps) {
 
         {/* Quick Specs for Grid View */}
         {displaySpecs.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5 min-h-[28px]">
             {displaySpecs.map((spec: any, idx: number) => (
-              <span key={idx} className="inline-flex items-center rounded bg-slate-50 px-1.5 py-0.5 text-[9px] font-semibold text-slate-500 border border-slate-100">
+              <span key={idx} className="inline-flex items-center rounded bg-slate-50 px-2 py-1 text-[9px] font-semibold text-slate-600 border border-slate-100 whitespace-nowrap overflow-hidden">
                 {spec.value}
               </span>
             ))}
