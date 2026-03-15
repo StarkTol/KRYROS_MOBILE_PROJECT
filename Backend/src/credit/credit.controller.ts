@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CreditService } from './credit.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -37,7 +37,7 @@ export class CreditController {
     return this.creditService.updatePlan(id, body);
   }
 
-  @Body()
+  @Delete('plans/:id')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Delete a credit plan (Admin)' })
   deletePlan(@Param('id') id: string) {
