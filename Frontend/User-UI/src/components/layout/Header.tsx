@@ -159,8 +159,11 @@ export function Header() {
       }`}
     >
       {/* Mobile Promo Bar - Sticky with Header */}
-      <div className="bg-kryros-green text-white py-1 px-4 text-center text-[10px] font-bold uppercase tracking-widest md:hidden">
-        Free Delivery Over {formatPrice(shippingConfig.threshold)}
+      <div className="bg-kryros-dark text-kryros-green py-2 px-4 text-center text-[11px] font-bold md:hidden border-b border-white/5">
+        <div className="flex items-center justify-center gap-1.5">
+          <Truck className="h-3.5 w-3.5" />
+          <span>Free Shipping on Orders Over {formatPrice(shippingConfig.threshold)}</span>
+        </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4">
